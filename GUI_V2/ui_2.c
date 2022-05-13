@@ -27,6 +27,21 @@ GtkWidget *mirror_menu_item;
 GtkWidget *rotation_menu_item;
 GtkWidget *mosaic_menu_item;
 GtkWidget *dithering_menu_item;
+GtkWidget *median_menu_item;
+
+GtkWidget *login_menu_item;
+GtkWidget *signup_menu_item;
+
+GtkWidget *create_menu_item;
+GtkWidget *push_menu_item;
+GtkWidget *pull_menu_item;
+GtkWidget *addpic_menu_item;
+
+GtkWidget *username_entry;
+GtkWidget *password_entry;
+
+GtkWidget *project_name;
+
 // Canvas
 Canvas canvas;
 // Pixbuf
@@ -109,24 +124,22 @@ void on_quit(__attribute__((unused)) GtkWidget *widget, __attribute__((unused)) 
     gtk_main_quit();
 }
 
-gboolean window_delete(__attribute__((unused)) GtkWidget *widget, __attribute__((unused)) GdkEvent *event, __attribute__((unused)) gpointer user_data)
-{
-    g_print("Trying to close window heh ?");
-    return TRUE; // Stops window from being deleted.
-}
-
 gboolean on_cancel(__attribute__((unused)) GtkWidget *widget, GdkPixbuf *before_modif)
 {
-    // ANNULE UN SEUL APPLY OUE BON FLEMME DECRIRE EN ANGLAIS FRERO
-    if (canvas.modified)
+    if (before_modif)
     {
-        gdk_pixbuf_unref(canvas.pixbuf);
-        canvas.pixbuf = gdk_pixbuf_copy(before_modif);
-        gdk_pixbuf_unref(canvas.initial);
-        canvas.initial = gdk_pixbuf_copy(before_modif);
-        canvas.modified = 0;
-        gdk_pixbuf_unref(before_modif);
+        // ANNULE UN SEUL APPLY OUE BON FLEMME DECRIRE EN ANGLAIS FRERO
+        if (canvas.modified)
+        {
+            gdk_pixbuf_unref(canvas.pixbuf);
+            canvas.pixbuf = gdk_pixbuf_copy(before_modif);
+            gdk_pixbuf_unref(canvas.initial);
+            canvas.initial = gdk_pixbuf_copy(before_modif);
+            canvas.modified = 0;
+            gdk_pixbuf_unref(before_modif);
+        }
     }
+
     return FALSE;
 }
 
@@ -143,11 +156,141 @@ gboolean on_scale(__attribute__((unused)) GtkWidget *widget, Canvas *canvas)
     return FALSE;
 }
 
+gboolean entry_changed(__attribute__((unused)) GtkWidget *widget, __attribute__((unused)) gpointer user_data)
+{
+    return FALSE;
+}
+
+//////////////////////////////////////////// Log In & Sign Up ////////////////////////////////////
+
+UserInfo send_user_info(GtkWidget *widget, gpointer user_data)
+{
+    UserInfo user_info;
+    user_info.username = gtk_entry_get_text(GTK_ENTRY(username_entry));
+    user_info.password = gtk_entry_get_text(GTK_ENTRY(password_entry));
+
+    return user_info;
+}
+
+gboolean on_login(__attribute__((unused)) GtkWidget *widget, __attribute__((unused)) gpointer user_data)
+{
+    GtkBuilder *builder_log = gtk_builder_new();
+
+    if (gtk_builder_add_from_file(builder_log, "builders/login_window.glade", NULL) == 0)
+    {
+        return 1;
+    }
+
+    GtkDialog *dialog = GTK_DIALOG(gtk_builder_get_object(builder_log, "dialog_login"));
+    GtkWidget *cancel_button = GTK_WIDGET(gtk_builder_get_object(builder_log, "cancel_button"));
+    GtkWidget *login_button = GTK_WIDGET(gtk_builder_get_object(builder_log, "login_button"));
+    username_entry = GTK_WIDGET(gtk_builder_get_object(builder_log, "username_entry"));
+    password_entry = GTK_WIDGET(gtk_builder_get_object(builder_log, "password_entry"));
+
+    gtk_builder_connect_signals(builder_log, NULL);
+
+    g_object_unref(builder_log);
+
+    g_signal_connect(G_OBJECT(cancel_button), "clicked", G_CALLBACK(on_cancel), NULL);
+    g_signal_connect(G_OBJECT(login_button), "clicked", G_CALLBACK(send_user_info), NULL);
+    g_signal_connect(G_OBJECT(username_entry), "changed", G_CALLBACK(entry_changed), NULL);
+    g_signal_connect(G_OBJECT(password_entry), "changed", G_CALLBACK(entry_changed), NULL);
+
+    gtk_dialog_run(GTK_DIALOG(dialog));
+
+    return FALSE;
+}
+
+gboolean on_signup(__attribute__((unused)) GtkWidget *widget, __attribute__((unused)) gpointer user_data)
+{
+    GtkBuilder *builder_sign = gtk_builder_new();
+
+    if (gtk_builder_add_from_file(builder_sign, "builders/signup_window.glade", NULL) == 0)
+    {
+        return 1;
+    }
+
+    GtkDialog *dialog = GTK_DIALOG(gtk_builder_get_object(builder_sign, "dialog_signup"));
+    GtkWidget *cancel_button = GTK_WIDGET(gtk_builder_get_object(builder_sign, "cancel_button"));
+    GtkWidget *signup_button = GTK_WIDGET(gtk_builder_get_object(builder_sign, "signup_button"));
+    username_entry = GTK_WIDGET(gtk_builder_get_object(builder_sign, "username_entry"));
+    password_entry = GTK_WIDGET(gtk_builder_get_object(builder_sign, "password_entry"));
+
+    gtk_builder_connect_signals(builder_sign, NULL);
+
+    g_object_unref(builder_sign);
+
+    g_signal_connect(G_OBJECT(cancel_button), "clicked", G_CALLBACK(on_cancel), NULL);
+    g_signal_connect(G_OBJECT(signup_button), "clicked", G_CALLBACK(send_user_info), NULL);
+    g_signal_connect(G_OBJECT(username_entry), "changed", G_CALLBACK(entry_changed), NULL);
+    g_signal_connect(G_OBJECT(password_entry), "changed", G_CALLBACK(entry_changed), NULL);
+
+    gtk_dialog_run(GTK_DIALOG(dialog));
+
+    return FALSE;
+}
+
+//////////////////////////////////////////// Project /////////////////////////////////////////////
+
+Project create_new_project(GtkWidget *widget, Canvas *canvas)
+{
+    Project project;
+    project.name = gtk_entry_get_text(GTK_ENTRY(project_name));
+    project.displayed_canvas = canvas;
+    project.id_users = NULL;
+
+    return project;
+}
+
+gboolean on_create_project(GtkWidget *widget, Canvas *canvas)
+{
+    GtkBuilder *builder_create = gtk_builder_new();
+
+    if (gtk_builder_add_from_file(builder_create, "builders/create_project_window.glade", NULL) == 0)
+    {
+        return 1;
+    }
+
+    GtkDialog *dialog = GTK_DIALOG(gtk_builder_get_object(builder_create, "dialog_create_proj"));
+    GtkWidget *cancel_button = GTK_WIDGET(gtk_builder_get_object(builder_create, "cancel_button"));
+    GtkWidget *create_button = GTK_WIDGET(gtk_builder_get_object(builder_create, "create_button"));
+    project_name = GTK_WIDGET(gtk_builder_get_object(builder_create, "project_name"));
+
+    gtk_builder_connect_signals(builder_create, NULL);
+
+    g_object_unref(builder_create);
+
+    g_signal_connect(G_OBJECT(cancel_button), "clicked", G_CALLBACK(on_cancel), NULL);
+    g_signal_connect(G_OBJECT(create_button), "clicked", G_CALLBACK(create_new_project), canvas);
+    g_signal_connect(G_OBJECT(project_name), "changed", G_CALLBACK(entry_changed), NULL);
+
+    gtk_dialog_run(GTK_DIALOG(dialog));
+
+    return FALSE;
+}
+
+gboolean on_pull_project(GtkWidget *widget, Canvas *canvas)
+{
+    // Pull project
+    return FALSE;
+}
+
+gboolean on_push_project(GtkWidget *widget, Canvas *canvas)
+{
+    // Push project
+    return FALSE;
+}
+
+gboolean on_add_pic(GtkWidget *widget, Canvas *canvas)
+{
+    // Add picture
+    return FALSE;
+}
+
 //////////////////////////////////////////// Lightness & Contrast ////////////////////////////////////
 
 static gboolean on_lc_filter(GtkWidget *widget, Canvas *canvas)
 {
-    gint res;
     GtkBuilder *builder_lc = gtk_builder_new();
 
     if (gtk_builder_add_from_file(builder_lc, "builders/lc_window.glade", NULL) == 0)
@@ -173,7 +316,7 @@ static gboolean on_lc_filter(GtkWidget *widget, Canvas *canvas)
     g_signal_connect(G_OBJECT(l_scale), "value_changed", G_CALLBACK(Lightness), canvas);
     g_signal_connect(G_OBJECT(c_scale), "value_changed", G_CALLBACK(Contrast), canvas);
 
-    res = gtk_dialog_run(GTK_DIALOG(dialog));
+    gtk_dialog_run(GTK_DIALOG(dialog));
 
     return FALSE;
 }
@@ -182,7 +325,6 @@ static gboolean on_lc_filter(GtkWidget *widget, Canvas *canvas)
 
 static gboolean on_hsv_filter(GtkWidget *widget, Canvas *canvas)
 {
-    gint res;
     GtkBuilder *builder_hsv = gtk_builder_new();
 
     if (gtk_builder_add_from_file(builder_hsv, "builders/hsv_window.glade", NULL) == 0)
@@ -210,7 +352,7 @@ static gboolean on_hsv_filter(GtkWidget *widget, Canvas *canvas)
     g_signal_connect(G_OBJECT(s_scale), "value_changed", G_CALLBACK(Saturation), canvas);
     g_signal_connect(G_OBJECT(h_scale), "value_changed", G_CALLBACK(Hue), canvas);
 
-    res = gtk_dialog_run(GTK_DIALOG(dialog));
+    gtk_dialog_run(GTK_DIALOG(dialog));
 
     return FALSE;
 }
@@ -219,7 +361,6 @@ static gboolean on_hsv_filter(GtkWidget *widget, Canvas *canvas)
 
 static gboolean on_gauss_filter(GtkWidget *widget, Canvas *canvas)
 {
-    gint res;
     GtkBuilder *builder_gauss = gtk_builder_new();
 
     if (gtk_builder_add_from_file(builder_gauss, "builders/gauss_window.glade", NULL) == 0)
@@ -243,7 +384,7 @@ static gboolean on_gauss_filter(GtkWidget *widget, Canvas *canvas)
     g_signal_connect(G_OBJECT(apply_button), "clicked", G_CALLBACK(on_apply), canvas);
     g_signal_connect(G_OBJECT(k_scale), "value_changed", G_CALLBACK(Gaussian), canvas);
 
-    res = gtk_dialog_run(GTK_DIALOG(dialog));
+    gtk_dialog_run(GTK_DIALOG(dialog));
 
     return FALSE;
 }
@@ -267,7 +408,6 @@ gboolean on_angle_change(GtkWidget *widget, Canvas *canvas)
 
 static gboolean on_motion_filter(GtkWidget *widget, Canvas *canvas)
 {
-    gint res;
     GtkBuilder *builder_motion = gtk_builder_new();
 
     if (gtk_builder_add_from_file(builder_motion, "builders/motion_window.glade", NULL) == 0)
@@ -293,7 +433,7 @@ static gboolean on_motion_filter(GtkWidget *widget, Canvas *canvas)
     g_signal_connect(G_OBJECT(k_scale), "value_changed", G_CALLBACK(on_k_change), canvas);
     g_signal_connect(G_OBJECT(angle_scale), "value_changed", G_CALLBACK(on_angle_change), canvas);
 
-    res = gtk_dialog_run(GTK_DIALOG(dialog));
+    gtk_dialog_run(GTK_DIALOG(dialog));
 
     return FALSE;
 }
@@ -334,9 +474,7 @@ static gboolean on_co_b(GtkWidget *widget, Canvas *canvas)
 
 static gboolean on_co_filter(GtkWidget *widget, Canvas *canvas)
 {
-    gint res;
     GtkBuilder *builder_co = gtk_builder_new();
-    
 
     if (gtk_builder_add_from_file(builder_co, "builders/co_window.glade", NULL) == 0)
     {
@@ -346,14 +484,14 @@ static gboolean on_co_filter(GtkWidget *widget, Canvas *canvas)
     GtkDialog *dialog = GTK_DIALOG(gtk_builder_get_object(builder_co, "dialog_co"));
     GtkWidget *cancel_button = GTK_WIDGET(gtk_builder_get_object(builder_co, "cancel_button"));
     GtkWidget *apply_button = GTK_WIDGET(gtk_builder_get_object(builder_co, "apply_button"));
-    
+
     gtk_builder_connect_signals(builder_co, NULL);
 
     GtkComboBoxText *co_a_val = GTK_WIDGET(gtk_builder_get_object(builder_co, "co_a_val"));
     GtkComboBoxText *co_r_val = GTK_WIDGET(gtk_builder_get_object(builder_co, "co_r_val"));
     GtkComboBoxText *co_g_val = GTK_WIDGET(gtk_builder_get_object(builder_co, "co_g_val"));
     GtkComboBoxText *co_b_val = GTK_WIDGET(gtk_builder_get_object(builder_co, "co_b_val"));
-    
+
     GdkPixbuf *before_modif = gdk_pixbuf_copy(canvas->pixbuf);
 
     g_object_unref(builder_co);
@@ -364,16 +502,14 @@ static gboolean on_co_filter(GtkWidget *widget, Canvas *canvas)
     g_signal_connect(G_OBJECT(co_g_val), "changed", G_CALLBACK(on_co_g), canvas);
     g_signal_connect(G_OBJECT(co_b_val), "changed", G_CALLBACK(on_co_b), canvas);
 
-    res = gtk_dialog_run(GTK_DIALOG(dialog));
+    gtk_dialog_run(GTK_DIALOG(dialog));
     return FALSE;
 }
-
 
 ///////////////////////////////////////// Chromatic Aberration ///////////////////////////////////////
 
 static gboolean on_ca_filter(GtkWidget *widget, Canvas *canvas)
 {
-    gint res;
     GtkBuilder *builder_ca = gtk_builder_new();
 
     if (gtk_builder_add_from_file(builder_ca, "builders/ca_window.glade", NULL) == 0)
@@ -399,7 +535,7 @@ static gboolean on_ca_filter(GtkWidget *widget, Canvas *canvas)
     g_signal_connect(G_OBJECT(hor_scale), "value-changed", G_CALLBACK(Horizontal_CA), canvas);
     g_signal_connect(G_OBJECT(ver_scale), "value-changed", G_CALLBACK(Vertical_CA), canvas);
 
-    res = gtk_dialog_run(GTK_DIALOG(dialog));
+    gtk_dialog_run(GTK_DIALOG(dialog));
 
     return FALSE;
 }
@@ -408,7 +544,6 @@ static gboolean on_ca_filter(GtkWidget *widget, Canvas *canvas)
 
 static gboolean on_rotation(GtkWidget *widget, Canvas *canvas)
 {
-    gint res;
     GtkBuilder *builder_rot = gtk_builder_new();
 
     if (gtk_builder_add_from_file(builder_rot, "builders/rot_window.glade", NULL) == 0)
@@ -432,7 +567,7 @@ static gboolean on_rotation(GtkWidget *widget, Canvas *canvas)
     g_signal_connect(G_OBJECT(apply_button), "clicked", G_CALLBACK(on_apply), canvas);
     g_signal_connect(G_OBJECT(rot_scale), "value-changed", G_CALLBACK(Rotation), canvas);
 
-    res = gtk_dialog_run(GTK_DIALOG(dialog));
+    gtk_dialog_run(GTK_DIALOG(dialog));
 
     return FALSE;
 }
@@ -441,7 +576,6 @@ static gboolean on_rotation(GtkWidget *widget, Canvas *canvas)
 
 static gboolean on_mosaic(GtkWidget *widget, Canvas *canvas)
 {
-    gint res;
     GtkBuilder *builder_mosaic = gtk_builder_new();
 
     if (gtk_builder_add_from_file(builder_mosaic, "builders/mosaic_window.glade", NULL) == 0)
@@ -465,7 +599,7 @@ static gboolean on_mosaic(GtkWidget *widget, Canvas *canvas)
     g_signal_connect(G_OBJECT(apply_button), "clicked", G_CALLBACK(on_apply), canvas);
     g_signal_connect(G_OBJECT(mosaic_scale), "value-changed", G_CALLBACK(Mosaic), canvas);
 
-    res = gtk_dialog_run(GTK_DIALOG(dialog));
+    gtk_dialog_run(GTK_DIALOG(dialog));
 
     return FALSE;
 }
@@ -517,7 +651,15 @@ int main(int argc, char **argv)
     rotation_menu_item = GTK_WIDGET(gtk_builder_get_object(builder, "rotation_menu_item"));
     mosaic_menu_item = GTK_WIDGET(gtk_builder_get_object(builder, "mosaic_menu_item"));
     dithering_menu_item = GTK_WIDGET(gtk_builder_get_object(builder, "dithering_menu_item"));
+    median_menu_item = GTK_WIDGET(gtk_builder_get_object(builder, "median_menu_item"));
 
+    signup_menu_item = GTK_WIDGET(gtk_builder_get_object(builder, "signup_menu_item"));
+    login_menu_item = GTK_WIDGET(gtk_builder_get_object(builder, "login_menu_item"));
+
+    create_menu_item = GTK_WIDGET(gtk_builder_get_object(builder, "create_menu_item"));
+    push_menu_item = GTK_WIDGET(gtk_builder_get_object(builder, "push_menu_item"));
+    pull_menu_item = GTK_WIDGET(gtk_builder_get_object(builder, "pull_menu_item"));
+    addpic_menu_item = GTK_WIDGET(gtk_builder_get_object(builder, "addpic_menu_item"));
 
     g_object_unref(builder);
 
@@ -543,6 +685,15 @@ int main(int argc, char **argv)
     g_signal_connect(G_OBJECT(rotation_menu_item), "activate", G_CALLBACK(on_rotation), &canvas);
     g_signal_connect(G_OBJECT(mosaic_menu_item), "activate", G_CALLBACK(on_mosaic), &canvas);
     g_signal_connect(G_OBJECT(dithering_menu_item), "activate", G_CALLBACK(Dithering), &canvas);
+    g_signal_connect(G_OBJECT(median_menu_item), "activate", G_CALLBACK(MedianFiltering), &canvas);
+
+    g_signal_connect(G_OBJECT(signup_menu_item), "activate", G_CALLBACK(on_signup), NULL);
+    g_signal_connect(G_OBJECT(login_menu_item), "activate", G_CALLBACK(on_login), NULL);
+
+    g_signal_connect(G_OBJECT(create_menu_item), "activate", G_CALLBACK(on_create_project), &canvas);
+    g_signal_connect(G_OBJECT(push_menu_item), "activate", G_CALLBACK(on_push_project), &canvas);
+    g_signal_connect(G_OBJECT(pull_menu_item), "activate", G_CALLBACK(on_pull_project), &canvas);
+    g_signal_connect(G_OBJECT(addpic_menu_item), "activate", G_CALLBACK(on_add_pic), &canvas);
 
     gtk_widget_set_app_paintable(drawing_area, TRUE);
     gtk_widget_show_all(GTK_WIDGET(window));

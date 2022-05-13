@@ -3,7 +3,6 @@
 #include <cairo.h>
 #include <stdio.h>
 
-
 typedef struct Canvas{
     GdkPixbuf *pixbuf;
     int width;
@@ -13,6 +12,12 @@ typedef struct Canvas{
     GdkPixbuf *initial;
     int modified;
 } Canvas;
+
+typedef struct Project{
+    guchar *name;
+    Canvas *displayed_canvas;
+    int *id_users;
+} Project;
 
 typedef struct color_pix
 {
@@ -25,6 +30,12 @@ typedef struct Palette{
     int length;
     color_pix *colors;
 } Palette;
+
+typedef struct UserInfo{
+    guchar *username;
+    guchar *password;
+    int id;
+} UserInfo;
 
 
 // In ui_2_tools.c
@@ -79,4 +90,8 @@ void Channel_Op(Canvas *canvas, gchar component, char* value);
 gboolean Mirror(GtkWidget *widget, Canvas *canvas);
 gboolean Rotation(GtkWidget *widget, Canvas *canvas);
 gboolean Mosaic(GtkWidget *widget, Canvas *canvas);
+
+// In ui_2_image_fix.c
 gboolean Dithering(GtkWidget *widget, Canvas *canvas);
+gboolean MedianFiltering(GtkWidget *widget, Canvas *canvas);
+gboolean WienerDeblur(GtkWidget *widget, Canvas *canvas);

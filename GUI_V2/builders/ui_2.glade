@@ -27,6 +27,47 @@
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
                     <child>
+                      <object class="GtkMenuItem" id="project_menu_item">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">Project...</property>
+                        <child type="submenu">
+                          <object class="GtkMenu">
+                            <property name="visible">True</property>
+                            <property name="can-focus">False</property>
+                            <child>
+                              <object class="GtkMenuItem" id="create_menu_item">
+                                <property name="visible">True</property>
+                                <property name="can-focus">False</property>
+                                <property name="label" translatable="yes">Create New Project</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkMenuItem" id="push_menu_item">
+                                <property name="visible">True</property>
+                                <property name="can-focus">False</property>
+                                <property name="label" translatable="yes">Push Project</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkMenuItem" id="pull_menu_item">
+                                <property name="visible">True</property>
+                                <property name="can-focus">False</property>
+                                <property name="label" translatable="yes">Pull Project</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkMenuItem" id="addpic_menu_item">
+                                <property name="visible">True</property>
+                                <property name="can-focus">False</property>
+                                <property name="label" translatable="yes">Add Picture To Project</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
                       <object class="GtkMenuItem" id="load_menu_item">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
@@ -38,6 +79,26 @@
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
                         <property name="label" translatable="yes">Save file</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkSeparatorMenuItem">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkMenuItem" id="login_menu_item">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">Log In</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkMenuItem" id="signup_menu_item">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">Sign Up</property>
                       </object>
                     </child>
                     <child>
@@ -71,7 +132,7 @@
                       <object class="GtkMenuItem" id="filter_menu_item">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
-                        <property name="label" translatable="yes">Filters</property>
+                        <property name="label" translatable="yes">Filters...</property>
                         <child type="submenu">
                           <object class="GtkMenu">
                             <property name="visible">True</property>
@@ -200,6 +261,13 @@
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
                         <property name="label" translatable="yes">Dithering</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkMenuItem" id="median_menu_item">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">Reduce Noise (Median)</property>
                       </object>
                     </child>
                   </object>
