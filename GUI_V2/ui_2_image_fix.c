@@ -302,7 +302,6 @@ gboolean MedianFiltering(GtkWidget *widget, Canvas *canvas)
             median[4].g = rgba[1];
             median[4].b = rgba[2];
 
-
             color_pix med = find_median(median);
 
             put_RGBA(canvas, i, j, med.r, med.g, med.b, rgba[3]);
@@ -313,12 +312,136 @@ gboolean MedianFiltering(GtkWidget *widget, Canvas *canvas)
     return FALSE;
 }
 
-/////////////////////////////////////// Deblur /////////////////////////////////////////////////
-
-gboolean WienerDeblur(GtkWidget *widget, Canvas *canvas)
+/////////////////////////////////////// Deinterlace /////////////////////////////////////////////////
+/*static void Save(Canvas *canvas, char *name)
 {
-    // Y = H * X + N :
-    // Y : Blurred image, X : Original image
+    if (canvas->pixbuf)
+        gdk_pixbuf_save(canvas->pixbuf, name, "jpeg", NULL, NULL);
+}*/
 
+/*gboolean DeinterlacingEven(GtkWidget *widget, Canvas *canvas)
+{
+    Canvas new_can;
+    new_can.width = canvas->width;
+    new_can.height = canvas->height / 2;
+
+    new_can.pixbuf = gdk_pixbuf_new(gdk_pixbuf_get_colorspace(canvas->pixbuf), TRUE, gdk_pixbuf_get_bits_per_sample(canvas->pixbuf), new_can.width, new_can.height);
+
+    new_can.n_channels = gdk_pixbuf_get_n_channels(new_can.pixbuf);
+    new_can.rowstride = gdk_pixbuf_get_rowstride(new_can.pixbuf);
+
+    new_can.initial = gdk_pixbuf_copy(new_can.pixbuf);
+    new_can.modified = 0;
+
+    guchar *rgba = malloc(4 * sizeof(guchar));
+
+    for(int j = 0; j < new_can.height; j++)
+    {
+        for(int i = 0; i < new_can.width; i++)
+        {
+            if (j * 2 < canvas->width)
+            {
+                rgba = get_RGBA_given_guchar(canvas, i, j * 2, rgba);
+                put_RGBA(&new_can, i, j, rgba[0], rgba[1], rgba[2], rgba[3]);
+            }
+        }
+    }
+
+    canvas->width = new_can.width;
+    canvas->height = new_can.height;
+    canvas->pixbuf = gdk_pixbuf_copy(new_can.pixbuf);
+    canvas->rowstride = new_can.rowstride;
+    canvas->n_channels = new_can.n_channels;
+    canvas->initial = gdk_pixbuf_copy(canvas->pixbuf);
+    canvas->modified = 0;
+
+    g_free(rgba);
+    return FALSE;
+}
+
+gboolean DeinterlacingOdd(GtkWidget *widget, Canvas *canvas)
+{
+    Canvas new_can;
+    new_can.width = canvas->width;
+    new_can.height = canvas->height / 2;
+    new_can.pixbuf = gdk_pixbuf_new(gdk_pixbuf_get_colorspace(canvas->pixbuf), TRUE, gdk_pixbuf_get_bits_per_sample(canvas->pixbuf), new_can.width, new_can.height);
+    new_can.n_channels = gdk_pixbuf_get_n_channels(new_can.pixbuf);
+    new_can.rowstride = gdk_pixbuf_get_rowstride(new_can.pixbuf);
+    new_can.initial = gdk_pixbuf_copy(new_can.pixbuf);
+    new_can.modified = 0;
+
+    guchar *rgba = malloc(4 * sizeof(guchar));
+
+    for(int j = 0; j < new_can.height; j++)
+    {
+        for(int i = 0; i < new_can.width; i++)
+        {
+            if (j * 2 + 1 < canvas->width)
+            {
+                rgba = get_RGBA_given_guchar(canvas, i, j * 2 + 1, rgba);
+                put_RGBA(&new_can, i, j, rgba[0], rgba[1], rgba[2], rgba[3]);
+            }
+        }
+    }
+
+    canvas->width = new_can.width;
+    canvas->height = new_can.height;
+    canvas->pixbuf = gdk_pixbuf_copy(new_can.pixbuf);
+    canvas->rowstride = new_can.rowstride;
+    canvas->n_channels = new_can.n_channels;
+    canvas->initial = gdk_pixbuf_copy(canvas->pixbuf);
+    canvas->modified = 0;
+
+    g_free(rgba);
+    return FALSE;
+}*/
+
+gboolean DeinterlacingSameSceneEven(GtkWidget *widget, Canvas *canvas)
+{
+    guchar *rgba_even1 = malloc(4 * sizeof(guchar));
+    guchar *rgba_even2 = malloc(4 * sizeof(guchar));
+
+    for (int j = 1; j + 1 < canvas->height; j += 2)
+    {
+        for (int i = 0; i < canvas->width; i++)
+        {
+            rgba_even1 = get_RGBA_given_guchar(canvas, i, j - 1, rgba_even1);
+            rgba_even2 = get_RGBA_given_guchar(canvas, i, j + 1, rgba_even2);
+
+            put_RGBA(canvas, i, j, (rgba_even1[0] + rgba_even2[0]) / 2, (rgba_even1[1] + rgba_even2[1]) / 2, (rgba_even1[2] + rgba_even2[2]) / 2, (rgba_even1[3] + rgba_even2[3]) / 2);
+        }
+    }
+
+    g_free(rgba_even1);
+    g_free(rgba_even2);
+    return FALSE;
+}
+
+gboolean DeinterlacingSameSceneOdd(GtkWidget *widget, Canvas *canvas)
+{
+    guchar *rgba_odd1 = malloc(4 * sizeof(guchar));
+    guchar *rgba_odd2 = malloc(4 * sizeof(guchar));
+
+    for (int j = 0; j + 1 < canvas->height; j += 2)
+    {
+        for (int i = 0; i < canvas->width; i++)
+        {
+            if (j - 1 < 0)
+            {
+                rgba_odd1 = get_RGBA_given_guchar(canvas, i, 1, rgba_odd1);
+                put_RGBA(canvas, i, j, rgba_odd1[0], rgba_odd1[1], rgba_odd1[2], rgba_odd1[3]);
+                continue;
+            }
+
+
+            rgba_odd1 = get_RGBA_given_guchar(canvas, i, j - 1, rgba_odd1);
+            rgba_odd2 = get_RGBA_given_guchar(canvas, i, j + 1, rgba_odd2);
+
+            put_RGBA(canvas, i, j, (rgba_odd1[0] + rgba_odd2[0]) / 2, (rgba_odd1[1] + rgba_odd2[1]) / 2, (rgba_odd1[2] + rgba_odd2[2]) / 2, (rgba_odd1[3] + rgba_odd2[3]) / 2);
+        }
+    }
+
+    g_free(rgba_odd1);
+    g_free(rgba_odd2);
     return FALSE;
 }

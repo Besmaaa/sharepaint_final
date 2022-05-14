@@ -94,4 +94,8 @@ gboolean Mosaic(GtkWidget *widget, Canvas *canvas);
 // In ui_2_image_fix.c
 gboolean Dithering(GtkWidget *widget, Canvas *canvas);
 gboolean MedianFiltering(GtkWidget *widget, Canvas *canvas);
-gboolean WienerDeblur(GtkWidget *widget, Canvas *canvas);
+
+//gboolean DeinterlacingEven(GtkWidget *widget, Canvas *canvas);
+//gboolean DeinterlacingOdd(GtkWidget *widget, Canvas *canvas);
+gboolean DeinterlacingSameSceneEven(GtkWidget *widget, Canvas *canvas);
+gboolean DeinterlacingSameSceneOdd(GtkWidget *widget, Canvas *canvas);

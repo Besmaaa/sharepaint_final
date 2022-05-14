@@ -26,8 +26,11 @@ GtkWidget *motion_menu_item;
 GtkWidget *mirror_menu_item;
 GtkWidget *rotation_menu_item;
 GtkWidget *mosaic_menu_item;
+
 GtkWidget *dithering_menu_item;
 GtkWidget *median_menu_item;
+GtkWidget *deinter_odd_menu_item;
+GtkWidget *deinter_even_menu_item;
 
 GtkWidget *login_menu_item;
 GtkWidget *signup_menu_item;
@@ -652,6 +655,8 @@ int main(int argc, char **argv)
     mosaic_menu_item = GTK_WIDGET(gtk_builder_get_object(builder, "mosaic_menu_item"));
     dithering_menu_item = GTK_WIDGET(gtk_builder_get_object(builder, "dithering_menu_item"));
     median_menu_item = GTK_WIDGET(gtk_builder_get_object(builder, "median_menu_item"));
+    deinter_odd_menu_item = GTK_WIDGET(gtk_builder_get_object(builder, "deinter_odd_menu_item"));
+    deinter_even_menu_item = GTK_WIDGET(gtk_builder_get_object(builder, "deinter_even_menu_item"));
 
     signup_menu_item = GTK_WIDGET(gtk_builder_get_object(builder, "signup_menu_item"));
     login_menu_item = GTK_WIDGET(gtk_builder_get_object(builder, "login_menu_item"));
@@ -686,6 +691,9 @@ int main(int argc, char **argv)
     g_signal_connect(G_OBJECT(mosaic_menu_item), "activate", G_CALLBACK(on_mosaic), &canvas);
     g_signal_connect(G_OBJECT(dithering_menu_item), "activate", G_CALLBACK(Dithering), &canvas);
     g_signal_connect(G_OBJECT(median_menu_item), "activate", G_CALLBACK(MedianFiltering), &canvas);
+
+    g_signal_connect(G_OBJECT(deinter_odd_menu_item), "activate", G_CALLBACK(DeinterlacingSameSceneOdd), &canvas);
+    g_signal_connect(G_OBJECT(deinter_even_menu_item), "activate", G_CALLBACK(DeinterlacingSameSceneEven), &canvas);
 
     g_signal_connect(G_OBJECT(signup_menu_item), "activate", G_CALLBACK(on_signup), NULL);
     g_signal_connect(G_OBJECT(login_menu_item), "activate", G_CALLBACK(on_login), NULL);
