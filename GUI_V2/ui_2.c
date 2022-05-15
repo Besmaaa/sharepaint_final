@@ -34,6 +34,7 @@ GtkWidget *deinter_even_menu_item;
 
 GtkWidget *login_menu_item;
 GtkWidget *signup_menu_item;
+GtkWidget *logout_menu_item;
 
 GtkWidget *create_menu_item;
 GtkWidget *push_menu_item;
@@ -183,19 +184,40 @@ gboolean destroy_dialog(GtkWidget *widget, GtkDialog *dialog)
     return FALSE;
 }
 
-gboolean send_user_info(GtkWidget *widget, GtkDialog *dialog)
+gboolean send_user_info(GtkWidget *widget, UserInfo* user_info)
 {
-    UserInfo info;
-    info.username = gtk_entry_get_text(GTK_ENTRY(username_entry));
-    info.password = gtk_entry_get_text(GTK_ENTRY(password_entry));
-    // fonction je te passe le userinfo(UserInfo info);
+    user_info->username = "zebi";
+    user_info->password = gtk_entry_get_text(GTK_ENTRY(password_entry));
 
-    gtk_widget_destroy(dialog);
+    // if le serv veut pas
+    GtkBuilder *builder_fail = gtk_builder_new();
+
+    if (gtk_builder_add_from_file(builder_fail, "builders/login_failed_window.glade", NULL) == 0)
+    {
+        return 1;
+    }
+
+    GtkWindow *window_fail = GTK_WIDGET(gtk_builder_get_object(builder_fail, "window_fail"));
+    gtk_builder_connect_signals(builder_fail, NULL);
+    gtk_widget_show_all(window);
+
+
+
+    /*if(user_info->fct == 0)
+        login(user_info->cfd, user_info->username, user_info->password, &user_info->token);
+
+    else if(user_info->fct == 1)
+        signup(user_info->cfd, &user_info->username, &user_info->password);
+
+    printf("infos af loged : %s,%s,%d \n",user_info->username,user_info->password,user_info->token); */
     return FALSE;
 }
 
-gboolean on_login(__attribute__((unused)) GtkWidget *widget, __attribute__((unused)) gpointer user_data)
+gboolean on_login(__attribute__((unused)) GtkWidget *widget, UserInfo* user_data)
 {
+    
+    user_data->fct = 0;
+
     GtkBuilder *builder_log = gtk_builder_new();
 
     if (gtk_builder_add_from_file(builder_log, "builders/login_window.glade", NULL) == 0)
@@ -213,13 +235,15 @@ gboolean on_login(__attribute__((unused)) GtkWidget *widget, __attribute__((unus
 
     g_object_unref(builder_log);
 
-    g_signal_connect(G_OBJECT(cancel_button), "clicked", G_CALLBACK(destroy_dialog), dialog);
-    g_signal_connect(G_OBJECT(login_button), "clicked", G_CALLBACK(send_user_info), dialog);
+    g_signal_connect(G_OBJECT(cancel_button), "clicked", G_CALLBACK(on_cancel), NULL);
+    g_signal_connect(G_OBJECT(login_button), "clicked", G_CALLBACK(send_user_info), user_data);
     g_signal_connect(G_OBJECT(username_entry), "changed", G_CALLBACK(entry_changed), NULL);
     g_signal_connect(G_OBJECT(password_entry), "changed", G_CALLBACK(entry_changed), NULL);
-
+    
     gtk_dialog_run(GTK_DIALOG(dialog));
 
+    
+    printf("infos af loged : %s,%s,%d \n",user_data->username,user_data->password,user_data->token); 
     return FALSE;
 }
 
@@ -252,20 +276,36 @@ gboolean on_signup(__attribute__((unused)) GtkWidget *widget, __attribute__((unu
     return FALSE;
 }
 
-//////////////////////////////////////////// Project /////////////////////////////////////////////
-
-Project create_new_project(GtkWidget *widget, Canvas *canvas)
+gboolean on_logout(__attribute__((unused)) GtkWidget *widget, __attribute__((unused)) gpointer user_data)
 {
-    Project project;
-    project.name = gtk_entry_get_text(GTK_ENTRY(project_name));
-    project.displayed_canvas = canvas;
-    project.id_users = NULL;
-
-    return project;
+    return FALSE;
 }
 
-gboolean on_create_project(GtkWidget *widget, Canvas *canvas)
+//////////////////////////////////////////// Project /////////////////////////////////////////////
+
+gboolean create_new_project(GtkWidget *widget, UserInfo* user_info)
 {
+    g_print("yoooo\n");
+    //canvas = *(user_info->canvas);
+    Project project;
+    project.name = gtk_entry_get_text(GTK_ENTRY(project_name));
+    user_info->proj = gtk_entry_get_text(GTK_ENTRY(project_name));
+    printf("before canvas assign\n");
+    project.displayed_canvas = &canvas;
+    project.id_users = NULL;
+    printf("before pcreate call\n");
+    
+    g_assert(user_info->username != NULL);
+    
+    g_print("Username : %s\n",user_info->username); 
+    project_create(user_info->cfd,user_info->proj,user_info->username,&user_info->token);
+    printf("after pcreate\n");
+    return FALSE;
+}
+
+gboolean on_create_project(GtkWidget *widget, UserInfo* user_info)
+{
+    g_print("infos bf pcreate: %s\n",user_info->username); 
     GtkBuilder *builder_create = gtk_builder_new();
 
     if (gtk_builder_add_from_file(builder_create, "builders/create_project_window.glade", NULL) == 0)
@@ -283,7 +323,7 @@ gboolean on_create_project(GtkWidget *widget, Canvas *canvas)
     g_object_unref(builder_create);
 
     g_signal_connect(G_OBJECT(cancel_button), "clicked", G_CALLBACK(on_cancel), NULL);
-    g_signal_connect(G_OBJECT(create_button), "clicked", G_CALLBACK(create_new_project), canvas);
+    g_signal_connect(G_OBJECT(create_button), "clicked", G_CALLBACK(create_new_project), user_info);
     g_signal_connect(G_OBJECT(project_name), "changed", G_CALLBACK(entry_changed), NULL);
 
     gtk_dialog_run(GTK_DIALOG(dialog));
@@ -678,6 +718,17 @@ static gboolean on_mosaic(GtkWidget *widget, Canvas *canvas)
 
 int main(int argc, char **argv)
 {
+    /////////////////CLOUD////////////
+    UserInfo user_info;
+    int cfd = cloud_launch();
+    user_info.token = -1;
+    user_info.cfd = cfd; 
+    user_info.fct = 1;
+    user_info.username = malloc(64*sizeof(char));
+    user_info.password = malloc(64*sizeof(char));
+    user_info.proj = malloc(64*sizeof(char)); 
+    ////////////////////////////////
+
     gtk_init(&argc, &argv); // Init.
 
 
@@ -727,6 +778,7 @@ int main(int argc, char **argv)
 
     signup_menu_item = GTK_WIDGET(gtk_builder_get_object(builder, "signup_menu_item"));
     login_menu_item = GTK_WIDGET(gtk_builder_get_object(builder, "login_menu_item"));
+    logout_menu_item = GTK_WIDGET(gtk_builder_get_object(builder, "logout_menu_item"));
 
     create_menu_item = GTK_WIDGET(gtk_builder_get_object(builder, "create_menu_item"));
     push_menu_item = GTK_WIDGET(gtk_builder_get_object(builder, "push_menu_item"));
@@ -765,10 +817,11 @@ int main(int argc, char **argv)
     g_signal_connect(G_OBJECT(deinter_odd_menu_item), "activate", G_CALLBACK(DeinterlacingSameSceneOdd), &canvas);
     g_signal_connect(G_OBJECT(deinter_even_menu_item), "activate", G_CALLBACK(DeinterlacingSameSceneEven), &canvas);
 
-    g_signal_connect(G_OBJECT(signup_menu_item), "activate", G_CALLBACK(on_signup), NULL);
-    g_signal_connect(G_OBJECT(login_menu_item), "activate", G_CALLBACK(on_login), NULL);
+    g_signal_connect(G_OBJECT(signup_menu_item), "activate", G_CALLBACK(on_signup), &user_info);
+    g_signal_connect(G_OBJECT(login_menu_item), "activate", G_CALLBACK(on_login), &user_info);
+    g_signal_connect(G_OBJECT(logout_menu_item), "activate", G_CALLBACK(on_logout), &user_info);
 
-    g_signal_connect(G_OBJECT(create_menu_item), "activate", G_CALLBACK(on_create_project), &canvas);
+    g_signal_connect(G_OBJECT(create_menu_item), "activate", G_CALLBACK(on_create_project), &user_info);
     g_signal_connect(G_OBJECT(push_menu_item), "activate", G_CALLBACK(on_push_project), &canvas);
     g_signal_connect(G_OBJECT(pull_menu_item), "activate", G_CALLBACK(on_pull_project), &canvas);
     g_signal_connect(G_OBJECT(addpic_menu_item), "activate", G_CALLBACK(on_add_pic), &canvas);

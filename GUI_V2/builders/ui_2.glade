@@ -107,6 +107,13 @@
                       </object>
                     </child>
                     <child>
+                      <object class="GtkMenuItem" id="logout_menu_item">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">Log Out</property>
+                      </object>
+                    </child>
+                    <child>
                       <object class="GtkSeparatorMenuItem">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>

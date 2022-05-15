@@ -53,9 +53,14 @@ typedef struct Palette{
 
 // For Serv
 typedef struct UserInfo{
-    guchar *username;
-    guchar *password;
+    char *username;
+    char *password;
+    char *proj;
+    int token;
+    int cfd;
     int id;
+    int fct; //0=LOGIN,1=SIGNUP
+    Canvas* canvas;
 } UserInfo;
 
 // For FFT
