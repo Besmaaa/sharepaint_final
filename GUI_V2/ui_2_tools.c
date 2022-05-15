@@ -99,12 +99,12 @@ guchar *get_RGBA_given_guchar(Canvas *canvas, int x, int y, guchar *rgba)
     return rgba;
 }
 
-guchar *histogram(Canvas *canvas)
+int *histogram(Canvas *canvas)
 {
     guchar average;
     guchar *rgba;
 
-    guchar *histo = g_malloc(256 * sizeof(guchar));
+    int *histo = g_malloc(256 * sizeof(int));
 
     for (int x = 0; x < 256; x++)
         histo[x] = 0;

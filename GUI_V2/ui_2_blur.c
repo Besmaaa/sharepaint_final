@@ -6,6 +6,10 @@
 
 #define EPSILON 0.00001 
 
+void convolve(Canvas *canvas, double *kernel)
+{
+    // fdsqsQS
+}
 
 gboolean Gaussian(GtkWidget *widget, Canvas *canvas)
 {
@@ -98,6 +102,9 @@ gboolean Gaussian(GtkWidget *widget, Canvas *canvas)
 
 void Motion(Canvas *canvas, gint k, gdouble angle)
 {
+    if (k % 2 == 0)
+        k++;
+
     if (canvas->modified)
         return_to_initial(canvas);
 

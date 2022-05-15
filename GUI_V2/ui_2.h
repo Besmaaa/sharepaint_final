@@ -3,6 +3,7 @@
 #include <cairo.h>
 #include <stdio.h>
 
+// For Image Display In Drawing Area
 typedef struct Canvas{
     GdkPixbuf *pixbuf;
     int width;
@@ -13,12 +14,21 @@ typedef struct Canvas{
     int modified;
 } Canvas;
 
+typedef struct CanvasList
+{
+    int size;
+    Canvas *prev;
+} CanvasList;
+
+
+// ??
 typedef struct Project{
     guchar *name;
     Canvas *displayed_canvas;
     int *id_users;
 } Project;
 
+// RGB Pixel
 typedef struct color_pix
 {
     int r;
@@ -26,16 +36,49 @@ typedef struct color_pix
     int g;
 } color_pix;
 
+// For Drawing
+typedef struct Point{
+    int x;
+	int y;
+	GdkRGBA *color;
+    gdouble size;
+	struct Point *next;
+} Point;
+
+// For Dithering
 typedef struct Palette{
     int length;
     color_pix *colors;
 } Palette;
 
+// For Serv
 typedef struct UserInfo{
     guchar *username;
     guchar *password;
     int id;
 } UserInfo;
+
+// For FFT
+typedef struct complex_number
+{
+    float real;
+    float imaginary;
+} complex_number;
+
+// In ui_2_complex.c
+float complex_coef(float n, float k, float N);
+complex_number *table_complex_init(size_t size);
+complex_number complex_exp(float num);
+complex_number complex_plus(complex_number num1, complex_number num2);
+complex_number complex_minus(complex_number num1, complex_number num2);
+complex_number complex_times(complex_number num1, complex_number num2);
+complex_number complex_time_natural(complex_number num, float number);
+complex_number inverse_complex_real_with_imaginary(complex_number num1);
+complex_number complex_divide_natural(complex_number num, float number);
+void inverse_complex_array(complex_number * num, size_t size);
+void divide_complex_array(complex_number * num, size_t size, float number);
+void printf_complex(complex_number val);
+void print_arr_img(complex_number *arr, size_t size, size_t in_line);
 
 
 // In ui_2_tools.c
@@ -46,7 +89,7 @@ Canvas *return_to_initial(Canvas *canvas);
 void put_RGBA(Canvas *canvas, int x, int y, guchar red, guchar green, guchar blue, guchar alpha);
 guchar* get_RGBA(Canvas *canvas, int x, int y);
 guchar *get_RGBA_given_guchar(Canvas *canvas, int x, int y, guchar *rgba);
-guchar* histogram(Canvas *canvas);
+int* histogram(Canvas *canvas);
 guchar threshold(Canvas *canvas, guchar* histogram);
 
 void RGBToHSV(guchar *rgba, gdouble *hsv);
@@ -94,7 +137,6 @@ gboolean Mosaic(GtkWidget *widget, Canvas *canvas);
 // In ui_2_image_fix.c
 gboolean Dithering(GtkWidget *widget, Canvas *canvas);
 gboolean MedianFiltering(GtkWidget *widget, Canvas *canvas);
-
 //gboolean DeinterlacingEven(GtkWidget *widget, Canvas *canvas);
 //gboolean DeinterlacingOdd(GtkWidget *widget, Canvas *canvas);
 gboolean DeinterlacingSameSceneEven(GtkWidget *widget, Canvas *canvas);

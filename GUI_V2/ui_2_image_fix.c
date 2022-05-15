@@ -190,6 +190,8 @@ gboolean Dithering(GtkWidget *widget, Canvas *canvas)
         }
     }
 
+    gdk_pixbuf_unref(canvas->initial);
+    canvas->initial = gdk_pixbuf_copy(canvas->pixbuf);
     g_free(rgba);
     palette_free(palette);
     return FALSE;
@@ -239,6 +241,37 @@ static color_pix find_median(color_pix *color_list)
     res.r = reds[4];
     res.g = greens[4];
     res.b = blues[4];
+
+    g_free(reds);
+    g_free(greens);
+    g_free(blues);
+
+    return res;
+}
+
+static color_pix find_max(color_pix *color_list)
+{
+    guchar *reds = malloc(9 * sizeof(guchar));
+    guchar *greens = malloc(9 * sizeof(guchar));
+    guchar *blues = malloc(9 * sizeof(guchar));
+
+    for (int i = 0; i < 9; i++)
+    {
+        reds[i] = color_list[i].r;
+        greens[i] = color_list[i].g;
+        blues[i] = color_list[i].b;
+    }
+
+    free(color_list);
+
+    sort_guchar_list(reds);
+    sort_guchar_list(greens);
+    sort_guchar_list(blues);
+
+    color_pix res;
+    res.r = reds[8];
+    res.g = greens[8];
+    res.b = blues[8];
 
     g_free(reds);
     g_free(greens);
@@ -308,6 +341,8 @@ gboolean MedianFiltering(GtkWidget *widget, Canvas *canvas)
         }
     }
 
+    gdk_pixbuf_unref(canvas->initial);
+    canvas->initial = gdk_pixbuf_copy(canvas->pixbuf);
     g_free(rgba);
     return FALSE;
 }
@@ -412,6 +447,8 @@ gboolean DeinterlacingSameSceneEven(GtkWidget *widget, Canvas *canvas)
         }
     }
 
+    gdk_pixbuf_unref(canvas->initial);
+    canvas->initial = gdk_pixbuf_copy(canvas->pixbuf);
     g_free(rgba_even1);
     g_free(rgba_even2);
     return FALSE;
@@ -433,7 +470,6 @@ gboolean DeinterlacingSameSceneOdd(GtkWidget *widget, Canvas *canvas)
                 continue;
             }
 
-
             rgba_odd1 = get_RGBA_given_guchar(canvas, i, j - 1, rgba_odd1);
             rgba_odd2 = get_RGBA_given_guchar(canvas, i, j + 1, rgba_odd2);
 
@@ -441,7 +477,170 @@ gboolean DeinterlacingSameSceneOdd(GtkWidget *widget, Canvas *canvas)
         }
     }
 
+    gdk_pixbuf_unref(canvas->initial);
+    canvas->initial = gdk_pixbuf_copy(canvas->pixbuf);
     g_free(rgba_odd1);
     g_free(rgba_odd2);
     return FALSE;
+}
+
+/////////////////////////////////////// Artifact /////////////////////////////////////////////////
+
+int otsu_method(int *histogram, long int total_pixels)
+{
+    double probability[256], mean[256];
+    double max_between, between[256];
+    int threshold;
+
+    /*
+    probability = class probability
+    mean = class mean
+    between = between class variance
+    */
+
+    for (int i = 0; i < 256; i++)
+    {
+        probability[i] = 0.0;
+        mean[i] = 0.0;
+        between[i] = 0.0;
+    }
+
+    probability[0] = histogram[0];
+
+    for (int i = 1; i < 256; i++)
+    {
+        g_print("histo : %d\n", histogram[i]);
+        probability[i] = probability[i - 1] + histogram[i];
+        mean[i] = mean[i - 1] + i * histogram[i];
+    }
+
+    threshold = 0;
+    max_between = 0.0;
+
+    for (int i = 0; i < 256; i++)
+    {
+        if (probability[i] != 0.0 && probability[i] != 1.0)
+            between[i] = pow(mean[255] * probability[i] - mean[i], 2) / (probability[i] * (1.0 - probability[i]));
+        else
+            between[i] = 0.0;
+        if (between[i] > max_between)
+        {
+            max_between = between[i];
+            threshold = i;
+        }
+    }
+
+    return threshold;
+}
+
+color_pix *RGBToYUVColors(Canvas *canvas)
+{
+    color_pix *YUV = calloc(canvas->height * canvas->width, sizeof(color_pix));
+    guchar *rgba = malloc(4 * sizeof(guchar));
+
+    for (int j = 0; j < canvas->height; j++)
+    {
+        for (int i = 0; i < canvas->width; i++)
+        {
+            rgba = get_RGBA_given_guchar(canvas, i, j, rgba);
+            YUV[i + j * (canvas->width)].r = 0.257 * rgba[0] + 0.504 * rgba[1] + 0.098 * rgba[2] + 16.0;
+            YUV[i + j * (canvas->width)].g = -0.148 * rgba[0] - 0.291 * rgba[1] + 0.439 * rgba[2] + 128.0;
+            YUV[i + j * (canvas->width)].b = 0.439 * rgba[0] - 0.368 * rgba[1] - 0.071 * rgba[2] + 128.0;
+        }
+    }
+
+    g_free(rgba);
+    return YUV;
+}
+
+Canvas *Dilation(Canvas *canvas)
+{
+    Canvas res;
+    res.height = canvas->height;
+    res.width = canvas->width;
+    res.pixbuf = gdk_pixbuf_copy(canvas->pixbuf);
+    res.n_channels = gdk_pixbuf_get_n_channels(res.pixbuf);
+    res.rowstride = gdk_pixbuf_get_rowstride(res.pixbuf);
+    res.initial = res.pixbuf;
+    res.modified = 0;
+
+    /*int o = 1;
+    for (int i = o; i < w - o; i++)
+    {
+        for (int j = o; j < h - o; j++)
+        {
+            for (int k = -o; k <= o; k++)
+            {
+                for (int l = -o; l <= o; l++)
+                {
+                    for (int c = 0; c < 3; c++)
+                    {
+                        result[se_pos + c] = Math.Max(result[se_pos + c], buffer[position]);
+                    }
+                }
+            }
+        }
+    }*/
+
+    guchar *rgba = malloc(4 * sizeof(guchar));
+
+    for (int j = 1; j < canvas->height - 1; j++)
+    {
+        for (int i = 1; i < canvas->width - 1; i++)
+        {
+            color_pix *median = malloc(9 * sizeof(color_pix));
+
+            rgba = get_RGBA_given_guchar(canvas, i - 1, j - 1, rgba);
+            median[0].r = rgba[0];
+            median[0].g = rgba[1];
+            median[0].b = rgba[2];
+
+            rgba = get_RGBA_given_guchar(canvas, i, j - 1, rgba);
+            median[1].r = rgba[0];
+            median[1].g = rgba[1];
+            median[1].b = rgba[2];
+
+            rgba = get_RGBA_given_guchar(canvas, i + 1, j - 1, rgba);
+            median[2].r = rgba[0];
+            median[2].g = rgba[1];
+            median[2].b = rgba[2];
+
+            rgba = get_RGBA_given_guchar(canvas, i - 1, j, rgba);
+            median[3].r = rgba[0];
+            median[3].g = rgba[1];
+            median[3].b = rgba[2];
+
+            rgba = get_RGBA_given_guchar(canvas, i + 1, j, rgba);
+            median[5].r = rgba[0];
+            median[5].g = rgba[1];
+            median[5].b = rgba[2];
+
+            rgba = get_RGBA_given_guchar(canvas, i - 1, j + 1, rgba);
+            median[6].r = rgba[0];
+            median[6].g = rgba[1];
+            median[6].b = rgba[2];
+
+            rgba = get_RGBA_given_guchar(canvas, i, j + 1, rgba);
+            median[7].r = rgba[0];
+            median[7].g = rgba[1];
+            median[7].b = rgba[2];
+
+            rgba = get_RGBA_given_guchar(canvas, i + 1, j + 1, rgba);
+            median[8].r = rgba[0];
+            median[8].g = rgba[1];
+            median[8].b = rgba[2];
+
+            rgba = get_RGBA_given_guchar(canvas, i, j, rgba);
+            median[4].r = rgba[0];
+            median[4].g = rgba[1];
+            median[4].b = rgba[2];
+
+            color_pix med = find_max(median);
+
+            put_RGBA(&res, i, j, med.r, med.g, med.b, rgba[3]);
+        }
+    }
+
+    g_free(rgba);
+    return &res;
 }
