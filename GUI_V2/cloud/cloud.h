@@ -22,8 +22,8 @@ char* sendData(int clientsocket, char* data, char** result);
 void closeConnexion(int clientsocket);
 void ftp_request(int arg);
 
-int project_pull(int cfd, char* pname, char*name);
-int project_push(int cfd, char* pname, char* name);
+char* project_pull(int cfd, char* pname, char*name);
+char*project_push(int cfd, char* pname, char* name);
 char* logout(int cfd, char* name);
 char* login(int cfd, char* NAME, char* PASSWD, int* token);
 char* signup(int cfd, char* NAME, char* PASSWD);
@@ -31,8 +31,8 @@ char* project_create(int cfd, char* pname, char* name, int* token);
 List* project_getplist(List** plist,int cfd, char* name);
 int request_pget(int cfd, char* data, char* name);
 int authorized(int cfd, char* name, char* project);
-int request_addpict(int cfd, char* pName, char* pict, char* name);
-int request_adduser(char** data, char** name, int* token);
+char* request_addpict(int cfd, char* pName, char* pict, char* name);
+char* request_adduser(int cfd, char* pName, char* user, char* name);
 char* request_pcreate(char* pName,char* name, int* token);
 
 
