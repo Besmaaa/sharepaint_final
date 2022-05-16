@@ -65,6 +65,11 @@ typedef struct UserInfo{
     GtkLabel *warning_label;
 } UserInfo;
 
+typedef struct List{
+    char str[16];
+    struct List* next;
+}List;
+
 // For FFT
 typedef struct complex_number
 {
