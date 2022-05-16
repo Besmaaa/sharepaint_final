@@ -31,7 +31,7 @@ char* project_create(int cfd, char* pname, char* name, int* token);
 List* project_getplist(List** plist,int cfd, char* name);
 int request_pget(int cfd, char* data, char* name);
 int authorized(int cfd, char* name, char* project);
-int request_addpict(char** data, char** name, int* token);
+int request_addpict(int cfd, char* pName, char* pict, char* name);
 int request_adduser(char** data, char** name, int* token);
 char* request_pcreate(char* pName,char* name, int* token);
 

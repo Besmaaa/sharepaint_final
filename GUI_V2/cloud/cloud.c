@@ -37,7 +37,7 @@ char* project_create(int cfd, char* pname, char* name, int* token);
 List* project_getplist(List** plist,int cfd, char* name);
 int request_pget(int cfd, char* data, char* name);
 int authorized(int cfd, char* name, char* project);
-int request_addpict(char** data, char** name, int* token);
+int request_addpict(int cfd, char* pName, char* pict, char* name);
 int request_adduser(char** data, char** name, int* token);
 char* request_plist(char* pName);
 char* request_pcreate(char* pName, char* name, int* token);
@@ -147,20 +147,12 @@ char* signup(int cfd, char* NAME, char* PASSWD)
     return result;
 }
 
-int request_addpict(char** data, char** name, int* token)
+int request_addpict(int cfd, char* pName, char* pict, char* name)
 {
-    if(*token == -1)
-    {
-        printf("must be logged in\n");
-        return -1;
-    }
-    char pName[32];
-    printf("project name : \n");
-    scanf("%s",pName);
-    char uName[32];
-    printf("user to add : \n");
-    scanf("%s",uName);
-    sprintf(*data,"ADDPICT_%s_%s_%s",pName,uName,*name);
+    char data[256];
+    sprintf(data,"ADDPICT_%s_%s_%s",pName,pict,name);
+    char* result = malloc(256*sizeof(char));
+    sendData(cfd,data,&result);
     return 0;
 }
 int request_adduser(char** data, char** name, int* token)
@@ -243,12 +235,14 @@ int project_push(int cfd, char* pname, char* name)
         ftp_upload(file,url);
         list=list->next;
     }
+    printf("project_push() DONE");
     return 0;
 }
 
 
 int project_pull(int cfd, char* pname, char* name)
 {
+    mkdir(pname,S_IRWXU);
     char url[64];
     List* list = malloc(sizeof(List));
     project_getplist(&list,cfd,pname);
@@ -258,10 +252,11 @@ int project_pull(int cfd, char* pname, char* name)
 
         sprintf(url,"%s%s/%s",FTPURL,pname,list->str);
         sprintf(file,"%s/%s",pname,list->str);
-        printf("file : %s\n",file);
+        printf("file : %s\n url : %s\n",file,url);
         ftp_get(url,file);
         list=list->next;
     }
+    printf("project_pull() DONE\n");
     return 0;
 }
 
