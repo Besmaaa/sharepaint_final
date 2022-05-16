@@ -30,15 +30,15 @@ void ftp_request(int arg);
 
 char* login(int cfd, char* NAME, char* PASSWD, int *token);
 
-int project_push(int cfd, char*pname, char* name);
-int project_push(int cfd, char* pname, char* name);
+char* project_push(int cfd, char*pname, char* name);
+char* project_pull(int cfd, char* pname, char* name);
 char* logout(int cfd, char* name);
 char* project_create(int cfd, char* pname, char* name, int* token);
 List* project_getplist(List** plist,int cfd, char* name);
 int request_pget(int cfd, char* data, char* name);
 int authorized(int cfd, char* name, char* project);
-int request_addpict(int cfd, char* pName, char* pict, char* name);
-int request_adduser(char** data, char** name, int* token);
+char* request_addpict(int cfd, char* pName, char* pict, char* name);
+char* request_adduser(int cfd, char* pName, char* user, char* name);
 char* request_plist(char* pName);
 char* request_pcreate(char* pName, char* name, int* token);
 int cloud_launch()
@@ -147,29 +147,25 @@ char* signup(int cfd, char* NAME, char* PASSWD)
     return result;
 }
 
-int request_addpict(int cfd, char* pName, char* pict, char* name)
+char* request_addpict(int cfd, char* pName, char* pict, char* name)
 {
+
     char data[256];
     sprintf(data,"ADDPICT_%s_%s_%s",pName,pict,name);
     char* result = malloc(256*sizeof(char));
     sendData(cfd,data,&result);
-    return 0;
+    return result;
 }
-int request_adduser(char** data, char** name, int* token)
+
+
+char* request_adduser(int cfd, char* pName, char* user, char* name)
 {
-    if(*token == -1)
-    {
-        printf("must be logged in\n");
-        return -1;
-    }
-    char pName[32];
-    printf("project name : \n");
-    scanf("%s",pName);
-    char uName[32];
-    printf("user to add : \n");
-    scanf("%s",uName);
-    sprintf(*data,"ADDUSER_%s_%s_%s",pName,uName,*name);
-    return 0;
+
+    char data[256];
+    sprintf(data,"ADDUSER_%s_%s_%s",pName,user,name);
+    char* result = malloc(256*sizeof(char));
+    sendData(cfd,data,&result);
+    return result;
 }
 
 int authorized(int cfd, char* name, char* project)
@@ -220,8 +216,11 @@ void printlist(List* list)
     }
 }
 
-int project_push(int cfd, char* pname, char* name)
+char* project_push(int cfd, char* pname, char* name)
 {
+    
+    if(authorized(cfd,name,pname)==-1)
+        return "NOT ALLOWED";
     char url[64];
     List* list = malloc(sizeof(List));
     project_getplist(&list,cfd,pname);
@@ -236,12 +235,15 @@ int project_push(int cfd, char* pname, char* name)
         list=list->next;
     }
     printf("project_push() DONE");
-    return 0;
+    return "SUCCESS";
 }
 
 
-int project_pull(int cfd, char* pname, char* name)
+char* project_pull(int cfd, char* pname, char* name)
 {
+
+    if(authorized(cfd,name,pname)==-1)
+        return "NOT ALLOWED";
     mkdir(pname,S_IRWXU);
     char url[64];
     List* list = malloc(sizeof(List));
@@ -257,7 +259,7 @@ int project_pull(int cfd, char* pname, char* name)
         list=list->next;
     }
     printf("project_pull() DONE\n");
-    return 0;
+    return "SUCCESS";
 }
 
 List* project_getplist(List** plist,int cfd, char* name)
