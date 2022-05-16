@@ -28,17 +28,18 @@ char* sendData(int clientsocket, char* data, char** result);
 void closeConnexion(int clientsocket);
 void ftp_request(int arg);
 
-char* login(int cfd, char* NAME, char* PASSWD, int *token);
+void login(char** result,int cfd, char* NAME, char* PASSWD, int *token);
 
+void signup(char** result, int cfd, char* NAME, char* PASSWD);
 char* project_push(int cfd, char*pname, char* name);
 char* project_pull(int cfd, char* pname, char* name);
-char* logout(int cfd, char* name);
-char* project_create(int cfd, char* pname, char* name, int* token);
+void logout(char** result,int cfd, char* name);
+void project_create(char** result,int cfd, char* pname, char* name, int* token);
 List* project_getplist(List** plist,int cfd, char* name);
 int request_pget(int cfd, char* data, char* name);
 int authorized(int cfd, char* name, char* project);
-char* request_addpict(int cfd, char* pName, char* pict, char* name);
-char* request_adduser(int cfd, char* pName, char* user, char* name);
+void request_addpict(char** result,int cfd, char* pName, char* pict, char* name);
+void request_adduser(char** result,int cfd, char* pName, char* user, char* name);
 char* request_plist(char* pName);
 char* request_pcreate(char* pName, char* name, int* token);
 int cloud_launch()
@@ -137,35 +138,27 @@ char** ftp_filetolist()
 }*/
 
 
-char* signup(int cfd, char* NAME, char* PASSWD)
+void signup(char** result, int cfd, char* NAME, char* PASSWD)
 {
-    printf("caca\n");
     char data[256];
     sprintf(data,"SIGNUP_%s_%s",NAME,PASSWD);
-    char* result = malloc(256*sizeof(char));
-    sendData(cfd,data,&result);
-    return result;
+    sendData(cfd,data,result);
 }
 
-char* request_addpict(int cfd, char* pName, char* pict, char* name)
+void request_addpict(char** result, int cfd, char* pName, char* pict, char* name)
 {
 
     char data[256];
     sprintf(data,"ADDPICT_%s_%s_%s",pName,pict,name);
-    char* result = malloc(256*sizeof(char));
-    sendData(cfd,data,&result);
-    return result;
+    sendData(cfd,data,result);
 }
 
 
-char* request_adduser(int cfd, char* pName, char* user, char* name)
+void request_adduser(char** result,int cfd, char* pName, char* user, char* name)
 {
-
     char data[256];
     sprintf(data,"ADDUSER_%s_%s_%s",pName,user,name);
-    char* result = malloc(256*sizeof(char));
-    sendData(cfd,data,&result);
-    return result;
+    sendData(cfd,data,result);
 }
 
 int authorized(int cfd, char* name, char* project)
@@ -297,33 +290,24 @@ List* project_getplist(List** plist,int cfd, char* name)
 
 
 
-char* project_create(int cfd, char* pname, char* name, int* token)
+void project_create(char** result, int cfd, char* pname, char* name, int* token)
 {
-    printf("1\n");
     char* data = request_pcreate(pname,name,token);
-    printf("2\n");
-    char * result = malloc(256*sizeof(char));
-    printf("data: %s,  3\n",data);
-    sendData(cfd,data,&result);
-    return result;
+    sendData(cfd,data,result);
 }
-char* login(int cfd, char* NAME, char* PASSWD, int* token)
+void login(char** result,int cfd, char* NAME, char* PASSWD, int* token)
 {
     char data[256];
     srand(time(NULL));
     *token = rand();
     sprintf(data,"LOGIN_%s_%s_%d",NAME,PASSWD,*token);
-    char* result = malloc(256*sizeof(char));
-    sendData(cfd,data,&result);
-    return result;
+    sendData(cfd,data,result);
 }
-char* logout(int cfd, char* name)
+void logout(char** result,int cfd, char* name)
 {
     char* data = malloc(200*sizeof(char));
     sprintf(data,"LOGOUT_%s",name);
-    char* result = malloc(256*sizeof(char));
-    sendData(cfd,data,&result);
-    return result;
+    sendData(cfd,data,result);
 }
 void ftp_request(int arg)
 {

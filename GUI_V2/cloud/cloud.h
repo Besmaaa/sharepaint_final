@@ -24,15 +24,15 @@ void ftp_request(int arg);
 
 char* project_pull(int cfd, char* pname, char*name);
 char*project_push(int cfd, char* pname, char* name);
-char* logout(int cfd, char* name);
-char* login(int cfd, char* NAME, char* PASSWD, int* token);
-char* signup(int cfd, char* NAME, char* PASSWD);
-char* project_create(int cfd, char* pname, char* name, int* token);
+void logout(char** result,int cfd, char* name);
+void login(char** result, int cfd, char* NAME, char* PASSWD, int* token);
+void signup(char** result,int cfd, char* NAME, char* PASSWD);
+void project_create(char** result,int cfd, char* pname, char* name, int* token);
 List* project_getplist(List** plist,int cfd, char* name);
 int request_pget(int cfd, char* data, char* name);
 int authorized(int cfd, char* name, char* project);
-char* request_addpict(int cfd, char* pName, char* pict, char* name);
-char* request_adduser(int cfd, char* pName, char* user, char* name);
+void request_addpict(char** result,int cfd, char* pName, char* pict, char* name);
+void request_adduser(char** result,int cfd, char* pName, char* user, char* name);
 char* request_pcreate(char* pName,char* name, int* token);
 
 
