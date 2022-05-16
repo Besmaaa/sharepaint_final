@@ -38,9 +38,9 @@ int ftp_get(char* path, char* final_name)
     /*
      * You better replace the URL with one that works!
      */
-    char URL[64];
-    sprintf(URL,"ftp://192.168.1.23/ftp/%s",path);
-    curl_easy_setopt(curl, CURLOPT_URL,URL);
+    //char URL[64];
+    //sprintf(URL,"ftp://192.168.1.23/ftp/%s",path);
+    curl_easy_setopt(curl, CURLOPT_URL,path);
     /* Define our callback to get called when there's data to be written */
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, my_fwrite);
     /* Set a pointer to our struct to pass to the callback */

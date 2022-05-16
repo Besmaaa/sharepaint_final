@@ -14,7 +14,7 @@
 
 #include "ftpget.h"
 #include "ftpupload.h"
-
+#include "cloud.h"
 //#define SERVEURNAME "192.168.1.23"
 #define SERVEURNAME "195.132.24.123"
 //#define SERVEURNAME "127.0.0.1"
@@ -30,11 +30,16 @@ void ftp_request(int arg);
 
 char* login(int cfd, char* NAME, char* PASSWD, int *token);
 
+int project_push(int cfd, char*pname, char* name);
+int project_push(int cfd, char* pname, char* name);
+char* logout(int cfd, char* name);
 char* project_create(int cfd, char* pname, char* name, int* token);
+List* project_getplist(List** plist,int cfd, char* name);
 int request_pget(int cfd, char* data, char* name);
 int authorized(int cfd, char* name, char* project);
 int request_addpict(char** data, char** name, int* token);
 int request_adduser(char** data, char** name, int* token);
+char* request_plist(char* pName);
 char* request_pcreate(char* pName, char* name, int* token);
 int cloud_launch()
 {
@@ -136,8 +141,6 @@ char* signup(int cfd, char* NAME, char* PASSWD)
 {
     printf("caca\n");
     char data[256];
-    char passwd[64];
-    PASSWD = passwd;
     sprintf(data,"SIGNUP_%s_%s",NAME,PASSWD);
     char* result = malloc(256*sizeof(char));
     sendData(cfd,data,&result);
@@ -217,6 +220,86 @@ char* request_pcreate(char* pName, char* name, int* token)
     mkdir(pName,S_IRWXU);
     return data;
 }
+void printlist(List* list)
+{   while(list)
+    {
+        printf("l : %s\n",list->str);
+        list=list->next;
+    }
+}
+
+int project_push(int cfd, char* pname, char* name)
+{
+    char url[64];
+    List* list = malloc(sizeof(List));
+    project_getplist(&list,cfd,pname);
+    char file[64];
+    while(list)
+    {
+
+        sprintf(url,"%s%s/%s",FTPURL,pname,list->str);
+        sprintf(file,"%s/%s",pname,list->str);
+        printf("file : %s\n",file);
+        ftp_upload(file,url);
+        list=list->next;
+    }
+    return 0;
+}
+
+
+int project_pull(int cfd, char* pname, char* name)
+{
+    char url[64];
+    List* list = malloc(sizeof(List));
+    project_getplist(&list,cfd,pname);
+    char file[64];
+    while(list)
+    {
+
+        sprintf(url,"%s%s/%s",FTPURL,pname,list->str);
+        sprintf(file,"%s/%s",pname,list->str);
+        printf("file : %s\n",file);
+        ftp_get(url,file);
+        list=list->next;
+    }
+    return 0;
+}
+
+List* project_getplist(List** plist,int cfd, char* name)
+{
+    List* list =*plist;
+    list->next = NULL;
+    List* currentList = *plist;
+    //////////////////////
+    char* result = malloc(200*sizeof(char));
+    char* data = malloc(200*sizeof(char));
+    sprintf(data,"GETPICLIST_%s",name);
+    sendData(cfd,data,&result);
+    ///////////////////////
+    result++;
+    int i = 0;
+    while(result!=NULL && *result != '\0' && *result!='|')
+    {
+        if(*result=='_' || *result=='\0')
+        { 
+            currentList->str[i] = '\0';
+            currentList->next = malloc(sizeof(List));
+            currentList->next->next=NULL;
+            currentList=currentList->next;
+            i=0; 
+            result++;
+            continue;
+        }
+        currentList->str[i] = *result;
+        result++;
+        i++;
+    }
+    currentList->str[i] = '\0';
+    return list;
+}
+
+
+
 char* project_create(int cfd, char* pname, char* name, int* token)
 {
     printf("1\n");
@@ -230,11 +313,17 @@ char* project_create(int cfd, char* pname, char* name, int* token)
 char* login(int cfd, char* NAME, char* PASSWD, int* token)
 {
     char data[256];
-    char passwd[64];
     srand(time(NULL));
     *token = rand();
-    PASSWD = passwd;
     sprintf(data,"LOGIN_%s_%s_%d",NAME,PASSWD,*token);
+    char* result = malloc(256*sizeof(char));
+    sendData(cfd,data,&result);
+    return result;
+}
+char* logout(int cfd, char* name)
+{
+    char* data = malloc(200*sizeof(char));
+    sprintf(data,"LOGOUT_%s",name);
     char* result = malloc(256*sizeof(char));
     sendData(cfd,data,&result);
     return result;

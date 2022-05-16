@@ -20,9 +20,9 @@
  
 #define LOCAL_FILE      "test"
 #define UPLOAD_FILE_AS  "while-uploading"
-//#define REMOTE_URL      "ftp://192.168.1.23/ftp/"  UPLOAD_FILE_AS
+#define REMOTE_URL      "ftp://192.168.1.23/ftp/"  
 #define RENAME_FILE_TO  "renamed-and-fine"
-#define REMOTE_URL      "ftp://195.132.24.123/ftp/"  UPLOAD_FILE_AS
+//#define REMOTE_URL      "ftp://195.132.24.123/ftp/"  UPLOAD_FILE_AS
  
 /* NOTE: if you want this example to work on Windows with libcurl as a
    DLL, you MUST also provide a read callback with CURLOPT_READFUNCTION.
@@ -46,16 +46,17 @@ size_t read_callback(char *ptr, size_t size, size_t nmemb, void *stream)
  
 int ftp_upload(char* localfile, char* url)
 {
+  printf("la remotre url : |%s|\n",url);
   CURL *curl;
   CURLcode res;
   FILE *hd_src;
   struct stat file_info;
   unsigned long fsize;
  
-  struct curl_slist *headerlist = NULL;
-  static const char buf_1 [] = "RNFR " UPLOAD_FILE_AS;
-  static char buf_2 [] = "RNTO " RENAME_FILE_TO;
-  sprintf(buf_2,"RNTO %s",localfile);
+//  struct curl_slist *headerlist = NULL;
+//  static const char buf_1 [] = "RNFR " UPLOAD_FILE_AS;
+//  static char buf_2 [] = "RNTO " RENAME_FILE_TO;
+//  sprintf(buf_2,"RNTO %s",localfile);
  
   /* get the file size of the local file */
   if(stat(localfile, &file_info)) {
@@ -76,20 +77,20 @@ int ftp_upload(char* localfile, char* url)
   curl = curl_easy_init();
   if(curl) {
     /* build a list of commands to pass to libcurl */
-    headerlist = curl_slist_append(headerlist, buf_1);
-    headerlist = curl_slist_append(headerlist, buf_2);
+  //  headerlist = curl_slist_append(headerlist, buf_1);
+  //  headerlist = curl_slist_append(headerlist, buf_2);
  
     /* we want to use our own read function */
     curl_easy_setopt(curl, CURLOPT_READFUNCTION, read_callback);
  
     /* enable uploading */
     curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
- 
     /* specify target */
-    curl_easy_setopt(curl, CURLOPT_URL, REMOTE_URL);
+
+    curl_easy_setopt(curl, CURLOPT_URL, url);
  
     /* pass in that last of FTP commands to run after the transfer */
-    curl_easy_setopt(curl, CURLOPT_POSTQUOTE, headerlist);
+   // curl_easy_setopt(curl, CURLOPT_POSTQUOTE, headerlist);
  
     /* now specify which file to upload */
     curl_easy_setopt(curl, CURLOPT_READDATA, hd_src);
@@ -109,7 +110,7 @@ int ftp_upload(char* localfile, char* url)
               curl_easy_strerror(res));
  
     /* clean up the FTP commands list */
-    curl_slist_free_all(headerlist);
+    //curl_slist_free_all(headerlist);
  
     /* always cleanup */
     curl_easy_cleanup(curl);
