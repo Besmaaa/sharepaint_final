@@ -1,5 +1,17 @@
 #include "ui_2.h"
-
+#include <stdlib.h>
+#include <sys/types.h>
+#include <signal.h>
+#include <unistd.h>
+#include <string.h>
+#include <gtk/gtk.h>
+#include <gtk/gtkx.h>
+#include <math.h>
+#include <time.h>
+#include <ctype.h>
+#include <time.h>
+#include <sys/mman.h>
+#include <err.h>
 // Widgets.
 GtkWindow *window;
 GtkPaned *paned;
@@ -45,10 +57,22 @@ GtkWidget *username_entry;
 GtkWidget *password_entry;
 
 GtkWidget *project_name;
+GtkFileChooserButton *pic_chooser;
 
 Point *brush;
-GtkColorSelection *color_selection;
-GtkWidget *brush_size;
+Point *brush2;
+Point *start;
+// GtkColorSelection *color_selection;
+GtkWidget *color_selection;
+// drawing part
+// GtkWidget *fixed1;
+GtkWidget *drawing_area;
+GtkWidget *clear;
+Bool get_pixel_color = 0;
+GtkWidget *colorpencil;
+float brush_size_val = 10.0;
+GtkScale *brush_size;
+char *filename;
 
 // Canvas
 Canvas canvas;
@@ -60,7 +84,7 @@ gdouble angle = 0;
 
 static gboolean LoadFile(GtkWidget *file_chooser)
 {
-    GtkDialog *dialog;
+    GtkWidget *dialog;
     gint res;
 
     dialog = gtk_file_chooser_dialog_new("Open File", window, GTK_FILE_CHOOSER_ACTION_OPEN, "_Cancel", GTK_RESPONSE_CANCEL, "_Open", GTK_RESPONSE_ACCEPT, NULL);
@@ -68,7 +92,7 @@ static gboolean LoadFile(GtkWidget *file_chooser)
     res = gtk_dialog_run(GTK_DIALOG(dialog));
     if (res == GTK_RESPONSE_ACCEPT)
     {
-        char *filename;
+        // char *filename;
         GtkFileChooser *chooser = GTK_FILE_CHOOSER(dialog);
         filename = gtk_file_chooser_get_filename(chooser);
 
@@ -76,7 +100,7 @@ static gboolean LoadFile(GtkWidget *file_chooser)
         g_assert(pixbuf != NULL);
 
         if (!gdk_pixbuf_get_has_alpha(pixbuf))
-            pixbuf = gdk_pixbuf_add_alpha(pixbuf, FALSE, NULL, NULL, NULL);
+            pixbuf = gdk_pixbuf_add_alpha(pixbuf, FALSE, 0, 0, 0);
 
         canvas.pixbuf = pixbuf;
         canvas.n_channels = gdk_pixbuf_get_n_channels(canvas.pixbuf);
@@ -116,8 +140,7 @@ static gboolean on_draw(GtkWidget *da, cairo_t *cr, gpointer user_data)
 
     gtk_widget_queue_draw_area(da, 0, 0, da_width, da_height);
 
-    if (brush == NULL)
-        return FALSE;
+    on_draw1_draw(da, cr, user_data);
 
     return G_SOURCE_REMOVE;
 }
@@ -128,9 +151,9 @@ void on_quit(__attribute__((unused)) GtkWidget *widget, __attribute__((unused)) 
     g_print("Quitting application ...");
 
     if (canvas.pixbuf != NULL)
-        gdk_pixbuf_unref(canvas.pixbuf);
+        g_object_unref(canvas.pixbuf);
     if (canvas.initial != NULL)
-        gdk_pixbuf_unref(canvas.initial);
+        g_object_unref(canvas.initial);
 
     gtk_main_quit();
 }
@@ -142,12 +165,12 @@ gboolean on_cancel(__attribute__((unused)) GtkWidget *widget, GdkPixbuf *before_
         // ANNULE UN SEUL APPLY OUE BON FLEMME DECRIRE EN ANGLAIS FRERO
         if (canvas.modified)
         {
-            gdk_pixbuf_unref(canvas.pixbuf);
+            g_object_unref(canvas.pixbuf);
             canvas.pixbuf = gdk_pixbuf_copy(before_modif);
-            gdk_pixbuf_unref(canvas.initial);
+            g_object_unref(canvas.initial);
             canvas.initial = gdk_pixbuf_copy(before_modif);
             canvas.modified = 0;
-            gdk_pixbuf_unref(before_modif);
+            g_object_unref(before_modif);
         }
     }
 
@@ -156,7 +179,7 @@ gboolean on_cancel(__attribute__((unused)) GtkWidget *widget, GdkPixbuf *before_
 
 gboolean on_apply(__attribute__((unused)) GtkWidget *widget, Canvas *canvas)
 {
-    gdk_pixbuf_unref(canvas->initial);
+    g_object_unref(canvas->initial);
     canvas->initial = gdk_pixbuf_copy(canvas->pixbuf);
     canvas->modified = 0;
     return FALSE;
@@ -178,30 +201,21 @@ gboolean entry_changed(__attribute__((unused)) GtkWidget *widget, __attribute__(
 }
 
 //////////////////////////////////////////// Log In & Sign Up ////////////////////////////////////
-gboolean destroy_dialog(GtkWidget *widget, GtkDialog *dialog)
+gboolean destroy_dialog(GtkWidget *widget, GtkWidget *dialog)
 {
     gtk_widget_destroy(dialog);
     return FALSE;
 }
 
-gboolean send_user_info(GtkWidget *widget, UserInfo* user_info)
+gboolean send_user_info(GtkWidget *widget, UserInfo *user_info)
 {
     user_info->username = "zebi";
     user_info->password = gtk_entry_get_text(GTK_ENTRY(password_entry));
 
-    // if le serv veut pas
-    GtkBuilder *builder_fail = gtk_builder_new();
-
-    if (gtk_builder_add_from_file(builder_fail, "builders/login_failed_window.glade", NULL) == 0)
+    if (1)
     {
-        return 1;
+        gtk_label_set_label(user_info->warning_label, "Warning wrong password!");
     }
-
-    GtkWindow *window_fail = GTK_WIDGET(gtk_builder_get_object(builder_fail, "window_fail"));
-    gtk_builder_connect_signals(builder_fail, NULL);
-    gtk_widget_show_all(window);
-
-
 
     /*if(user_info->fct == 0)
         login(user_info->cfd, user_info->username, user_info->password, &user_info->token);
@@ -213,9 +227,9 @@ gboolean send_user_info(GtkWidget *widget, UserInfo* user_info)
     return FALSE;
 }
 
-gboolean on_login(__attribute__((unused)) GtkWidget *widget, UserInfo* user_data)
+gboolean on_login(__attribute__((unused)) GtkWidget *widget, UserInfo *user_data)
 {
-    
+
     user_data->fct = 0;
 
     GtkBuilder *builder_log = gtk_builder_new();
@@ -239,11 +253,10 @@ gboolean on_login(__attribute__((unused)) GtkWidget *widget, UserInfo* user_data
     g_signal_connect(G_OBJECT(login_button), "clicked", G_CALLBACK(send_user_info), user_data);
     g_signal_connect(G_OBJECT(username_entry), "changed", G_CALLBACK(entry_changed), NULL);
     g_signal_connect(G_OBJECT(password_entry), "changed", G_CALLBACK(entry_changed), NULL);
-    
+
     gtk_dialog_run(GTK_DIALOG(dialog));
 
-    
-    printf("infos af loged : %s,%s,%d \n",user_data->username,user_data->password,user_data->token); 
+    printf("infos af loged : %s,%s,%d \n", user_data->username, user_data->password, user_data->token);
     return FALSE;
 }
 
@@ -283,29 +296,52 @@ gboolean on_logout(__attribute__((unused)) GtkWidget *widget, __attribute__((unu
 
 //////////////////////////////////////////// Project /////////////////////////////////////////////
 
-gboolean create_new_project(GtkWidget *widget, UserInfo* user_info)
+gboolean create_new_project(GtkWidget *widget, UserInfo *user_info)
 {
-    g_print("yoooo\n");
-    //canvas = *(user_info->canvas);
+    // canvas = *(user_info->canvas);
     Project project;
     project.name = gtk_entry_get_text(GTK_ENTRY(project_name));
     user_info->proj = gtk_entry_get_text(GTK_ENTRY(project_name));
-    printf("before canvas assign\n");
     project.displayed_canvas = &canvas;
     project.id_users = NULL;
-    printf("before pcreate call\n");
-    
+
     g_assert(user_info->username != NULL);
-    
-    g_print("Username : %s\n",user_info->username); 
-    project_create(user_info->cfd,user_info->proj,user_info->username,&user_info->token);
-    printf("after pcreate\n");
+
+    project_create(user_info->cfd, user_info->proj, user_info->username, &user_info->token);
     return FALSE;
 }
 
-gboolean on_create_project(GtkWidget *widget, UserInfo* user_info)
+gboolean pull_project(GtkWidget *widget, UserInfo *user_info)
 {
-    g_print("infos bf pcreate: %s\n",user_info->username); 
+    Project project;
+    project.name = gtk_entry_get_text(GTK_ENTRY(project_name));
+    
+    if (1)
+    {
+        gtk_label_set_label(user_info->warning_label, "Failed. Project does not exist or you do not have access rights.");
+    }
+
+
+    return FALSE;
+}
+
+gboolean push_project(GtkWidget *widget, UserInfo *user_info)
+{
+    Project project;
+    project.name = gtk_entry_get_text(GTK_ENTRY(project_name));
+
+    if (1)
+    {
+        gtk_label_set_label(user_info->warning_label, "Failed. Project does not exist or you do not have access rights.");
+    }
+
+
+    return FALSE;
+}
+
+gboolean on_create_project(GtkWidget *widget, UserInfo *user_info)
+{
+    g_print("infos bf pcreate: %s\n", user_info->username);
     GtkBuilder *builder_create = gtk_builder_new();
 
     if (gtk_builder_add_from_file(builder_create, "builders/create_project_window.glade", NULL) == 0)
@@ -331,40 +367,155 @@ gboolean on_create_project(GtkWidget *widget, UserInfo* user_info)
     return FALSE;
 }
 
-gboolean on_pull_project(GtkWidget *widget, Canvas *canvas)
+gboolean on_pull_project(GtkWidget *widget, UserInfo *user_info)
 {
-    // Pull project
+    GtkBuilder *builder_pull = gtk_builder_new();
+
+    if (gtk_builder_add_from_file(builder_pull, "builders/pull_project_window.glade", NULL) == 0)
+    {
+        return 1;
+    }
+
+    GtkDialog *dialog = GTK_DIALOG(gtk_builder_get_object(builder_pull, "dialog_pull_proj"));
+    GtkWidget *cancel_button = GTK_WIDGET(gtk_builder_get_object(builder_pull, "cancel_button"));
+    GtkWidget *pull_button = GTK_WIDGET(gtk_builder_get_object(builder_pull, "pull_button"));
+    project_name = GTK_WIDGET(gtk_builder_get_object(builder_pull, "project_name"));
+
+    gtk_builder_connect_signals(builder_pull, NULL);
+
+    g_object_unref(builder_pull);
+
+    g_signal_connect(G_OBJECT(cancel_button), "clicked", G_CALLBACK(on_cancel), NULL);
+    g_signal_connect(G_OBJECT(pull_button), "clicked", G_CALLBACK(pull_project), user_info);
+    g_signal_connect(G_OBJECT(project_name), "changed", G_CALLBACK(entry_changed), NULL);
+
+    gtk_dialog_run(GTK_DIALOG(dialog));
+
     return FALSE;
 }
 
-gboolean on_push_project(GtkWidget *widget, Canvas *canvas)
+gboolean on_push_project(GtkWidget *widget, UserInfo *user_info)
 {
-    // Push project
+    GtkBuilder *builder_push = gtk_builder_new();
+
+    if (gtk_builder_add_from_file(builder_push, "builders/push_project_window.glade", NULL) == 0)
+    {
+        return 1;
+    }
+
+    GtkDialog *dialog = GTK_DIALOG(gtk_builder_get_object(builder_push, "dialog_push_proj"));
+    GtkWidget *cancel_button = GTK_WIDGET(gtk_builder_get_object(builder_push, "cancel_button"));
+    GtkWidget *push_button = GTK_WIDGET(gtk_builder_get_object(builder_push, "push_button"));
+    project_name = GTK_WIDGET(gtk_builder_get_object(builder_push, "project_name"));
+
+    gtk_builder_connect_signals(builder_push, NULL);
+
+    g_object_unref(builder_push);
+
+    g_signal_connect(G_OBJECT(cancel_button), "clicked", G_CALLBACK(on_cancel), NULL);
+    g_signal_connect(G_OBJECT(push_button), "clicked", G_CALLBACK(push_project), user_info);
+    g_signal_connect(G_OBJECT(project_name), "changed", G_CALLBACK(entry_changed), NULL);
+
+    gtk_dialog_run(GTK_DIALOG(dialog));
+
     return FALSE;
 }
 
-gboolean on_add_pic(GtkWidget *widget, Canvas *canvas)
+gboolean add_pic(GtkWidget *widget, UserInfo *user_info)
 {
-    // Add picture
+    Project project;
+    gchar *filename = gtk_file_chooser_get_filename(pic_chooser);
+    project.name = gtk_entry_get_text(GTK_ENTRY(project_name));
+
+    return FALSE;
+}
+
+gboolean on_add_pic(GtkWidget *widget, UserInfo *user_info)
+{
+    GtkBuilder *builder_add = gtk_builder_new();
+
+    if (gtk_builder_add_from_file(builder_add , "builders/add_pic_window.glade", NULL) == 0)
+    {
+        return 1;
+    }
+
+    GtkDialog *dialog = GTK_DIALOG(gtk_builder_get_object(builder_add , "dialog_add"));
+    GtkWidget *cancel_button = GTK_WIDGET(gtk_builder_get_object(builder_add , "cancel_button"));
+    GtkWidget *add_pic_button = GTK_WIDGET(gtk_builder_get_object(builder_add , "add_pic_button"));
+    project_name = GTK_WIDGET(gtk_builder_get_object(builder_add, "project_name"));
+    pic_chooser = GTK_WIDGET(gtk_builder_get_object(builder_add , "pic_chooser"));
+
+    gtk_builder_connect_signals(builder_add, NULL);
+
+    g_object_unref(builder_add);
+
+    g_signal_connect(G_OBJECT(cancel_button), "clicked", G_CALLBACK(on_cancel), NULL);
+    g_signal_connect(G_OBJECT(add_pic_button), "clicked", G_CALLBACK(add_pic), user_info);
+    g_signal_connect(G_OBJECT(project_name), "changed", G_CALLBACK(entry_changed), NULL);
+    g_signal_connect(G_OBJECT(pic_chooser), "file-set", G_CALLBACK(entry_changed), NULL);
+
+    gtk_dialog_run(GTK_DIALOG(dialog));
+
     return FALSE;
 }
 
 //////////////////////////////////////////// Drawing /////////////////////////////////////////////
 
-gboolean on_color_change(GtkColorSelection *widget, Point *brush)
+gboolean on_color_change(GtkColorChooser *widget, Point *brush)
 {
-    gtk_color_selection_get_current_rgba(widget, brush->color);
+    // gtk_color_selection_get_current_rgba(widget, brush->color);
+    gtk_color_chooser_get_rgba(widget, brush->color);
+    g_print("color_changed");
     return FALSE;
 }
 
 gboolean on_brush_size_change(GtkWidget *widget, Point *brush)
 {
-    brush->size = gtk_range_get_value(GTK_RANGE(widget));
+    // brush->size = gtk_range_get_value(GTK_RANGE(widget));
     return FALSE;
+}
+
+void on_draw1_draw(GtkWidget *widget, cairo_t *cr, gpointer data)
+{
+
+    // g_print("x = %d\n", 1);
+    guint width, height;
+    width = gtk_widget_get_allocated_width(widget);
+    height = gtk_widget_get_allocated_height(widget);
+
+    //brush_size_val = 10.0;
+    cairo_set_line_width(cr,  brush_size_val);
+    if (start == NULL) return FALSE;
+
+    int old_x = start->x;
+    int old_y = start->y;
+    
+    
+    brush = start->next;
+
+    while (brush != NULL)
+    {
+        cairo_set_source_rgb(cr, 0/*brush->color->red*/, 0/*brush->color->green*/, 0/*brush->color->blue*/);
+        cairo_move_to(cr, (double)old_x, (double)old_y);
+        if (!(old_x >= brush->x + 50 || old_x <= brush->x - 50))
+        {
+            if (!(old_y >= brush->y + 50 || old_y <= brush->y - 50))
+            {
+                cairo_line_to(cr, (double)brush->x, (double)brush->y);
+            }
+        }
+
+        cairo_stroke(cr);
+        old_x = brush->x;
+        old_y = brush->y;
+        brush = brush->next;
+    }
+
 }
 
 static void draw_brush(GtkWidget *widget, gdouble x, gdouble y)
 {
+    brush = malloc(sizeof(struct Point));
     if (brush == NULL)
     {
         printf("out of memory\n");
@@ -373,27 +524,44 @@ static void draw_brush(GtkWidget *widget, gdouble x, gdouble y)
 
     brush->x = x;
     brush->y = y;
-    g_print("x = %d\n", x);
-    g_print("y = %d\n", y);
-    brush->next = brush;
+    brush->next = start;
+    start = brush;
     gtk_widget_queue_draw(drawing_area);
 }
 
 gboolean on_draw1_button_press_event(GtkWidget *widget, GdkEventButton *event)
 {
-    g_print("hey");
     draw_brush(widget, event->x, event->y);
-    return TRUE;
+    return FALSE;
 }
 
 gboolean on_draw1_motion_notify_event(GtkWidget *widget, GdkEventMotion *event, gpointer data)
 {
-    g_print("heyyy");
     if (event->state & GDK_BUTTON1_MASK)
         draw_brush(widget, event->x, event->y);
 
-    return TRUE;
+    return FALSE;
 }
+
+void on_colorpencil_clicked(GtkWidget *b1)
+{
+    get_pixel_color = 1;
+}
+
+void on_clear_clicked(GtkWidget *b1)
+{
+    brush = start;
+    while (brush)
+    {
+        brush2 = brush->next;
+        free(brush);
+        brush = brush2;
+    }
+    start = NULL;
+    gtk_widget_queue_draw(drawing_area);
+}
+
+
 
 //////////////////////////////////////////// Lightness & Contrast ////////////////////////////////////
 
@@ -719,19 +887,17 @@ static gboolean on_mosaic(GtkWidget *widget, Canvas *canvas)
 int main(int argc, char **argv)
 {
     /////////////////CLOUD////////////
-    UserInfo user_info;
-    int cfd = cloud_launch();
-    user_info.token = -1;
-    user_info.cfd = cfd; 
-    user_info.fct = 1;
-    user_info.username = malloc(64*sizeof(char));
-    user_info.password = malloc(64*sizeof(char));
-    user_info.proj = malloc(64*sizeof(char)); 
+    // UserInfo user_info;
+    // int cfd = cloud_launch();
+    // user_info.token = -1;
+    // user_info.cfd = cfd;
+    // user_info.fct = 1;
+    // user_info.username = malloc(64*sizeof(char));
+    // user_info.password = malloc(64*sizeof(char));
+    // user_info.proj = malloc(64*sizeof(char));
     ////////////////////////////////
-
     gtk_init(&argc, &argv); // Init.
-
-
+    start = NULL;
     GError *err = NULL;
     // Builder.
     GtkBuilder *builder = gtk_builder_new();
@@ -747,7 +913,6 @@ int main(int argc, char **argv)
     window = GTK_WINDOW(gtk_builder_get_object(builder, "window"));
     paned = GTK_PANED(gtk_builder_get_object(builder, "paned"));
     menu_bar = GTK_MENU_BAR(gtk_builder_get_object(builder, "menu_bar"));
-    brush = malloc(sizeof(struct Point));
 
     gtk_builder_connect_signals(builder, NULL); // Connect signals.
 
@@ -785,14 +950,20 @@ int main(int argc, char **argv)
     pull_menu_item = GTK_WIDGET(gtk_builder_get_object(builder, "pull_menu_item"));
     addpic_menu_item = GTK_WIDGET(gtk_builder_get_object(builder, "addpic_menu_item"));
 
-    color_selection = GTK_WIDGET(gtk_builder_get_object(builder, "color_selection"));
-    brush_size = GTK_WIDGET(gtk_builder_get_object(builder, "brush_size"));
-
+    color_selection = GTK_WIDGET(gtk_builder_get_object(builder, "color_chooser"));
+    brush_size = GTK_SCALE(gtk_builder_get_object(builder, "brush_size"));
+    colorpencil = GTK_WIDGET(gtk_builder_get_object(builder, "colorpencil"));
+    //  clear		= GTK_WIDGET(gtk_builder_get_object(builder, "clear"));
+    // fixed1		= GTK_WIDGET(gtk_builder_get_object(builder, "fixed1"));
     g_object_unref(builder);
+
+    gtk_widget_set_events(drawing_area, GDK_BUTTON_MOTION_MASK | GDK_BUTTON_PRESS_MASK);
 
     // Connect signals.
     g_signal_connect(G_OBJECT(window), "destroy", G_CALLBACK(on_quit), NULL);
     g_signal_connect(G_OBJECT(drawing_area), "draw", G_CALLBACK(on_draw), NULL);
+    g_signal_connect(G_OBJECT(drawing_area), "button-press-event", G_CALLBACK(on_draw1_button_press_event), NULL);
+    g_signal_connect(G_OBJECT(drawing_area), "motion-notify-event", G_CALLBACK(on_draw1_button_press_event), NULL);
     g_signal_connect(G_OBJECT(load_menu_item), "activate", G_CALLBACK(LoadFile), NULL);
     g_signal_connect(G_OBJECT(save_menu_item), "activate", G_CALLBACK(SaveFile), &canvas);
     g_signal_connect(G_OBJECT(quit_menu_item), "activate", G_CALLBACK(on_quit), NULL);
@@ -817,19 +988,20 @@ int main(int argc, char **argv)
     g_signal_connect(G_OBJECT(deinter_odd_menu_item), "activate", G_CALLBACK(DeinterlacingSameSceneOdd), &canvas);
     g_signal_connect(G_OBJECT(deinter_even_menu_item), "activate", G_CALLBACK(DeinterlacingSameSceneEven), &canvas);
 
-    g_signal_connect(G_OBJECT(signup_menu_item), "activate", G_CALLBACK(on_signup), &user_info);
-    g_signal_connect(G_OBJECT(login_menu_item), "activate", G_CALLBACK(on_login), &user_info);
-    g_signal_connect(G_OBJECT(logout_menu_item), "activate", G_CALLBACK(on_logout), &user_info);
+    // g_signal_connect(G_OBJECT(signup_menu_item), "activate", G_CALLBACK(on_signup), &user_info);
+    // g_signal_connect(G_OBJECT(login_menu_item), "activate", G_CALLBACK(on_login), &user_info);
+    // g_signal_connect(G_OBJECT(logout_menu_item), "activate", G_CALLBACK(on_logout), &user_info);
 
-    g_signal_connect(G_OBJECT(create_menu_item), "activate", G_CALLBACK(on_create_project), &user_info);
+    // g_signal_connect(G_OBJECT(create_menu_item), "activate", G_CALLBACK(on_create_project), &user_info);
     g_signal_connect(G_OBJECT(push_menu_item), "activate", G_CALLBACK(on_push_project), &canvas);
     g_signal_connect(G_OBJECT(pull_menu_item), "activate", G_CALLBACK(on_pull_project), &canvas);
     g_signal_connect(G_OBJECT(addpic_menu_item), "activate", G_CALLBACK(on_add_pic), &canvas);
 
-    g_signal_connect(G_OBJECT(color_selection), "color-changed", G_CALLBACK(on_color_change), brush);
-    g_signal_connect(G_OBJECT(brush_size), "value-changed", G_CALLBACK(on_brush_size_change), brush);
+    g_signal_connect(G_OBJECT(color_selection), "color-activated", G_CALLBACK(on_color_change), start);
+    g_signal_connect(G_OBJECT(brush_size), "value-changed", G_CALLBACK(on_brush_size_change), &brush_size);
+    g_signal_connect(G_OBJECT(clear), "clicked", G_CALLBACK(on_clear_clicked), &clear);
 
-    gtk_widget_set_events(drawing_area, GDK_BUTTON_MOTION_MASK | GDK_BUTTON_PRESS_MASK);
+    
     gtk_widget_set_app_paintable(drawing_area, TRUE);
     gtk_widget_show_all(GTK_WIDGET(window));
     gtk_main();

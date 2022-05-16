@@ -6,11 +6,6 @@
 
 #define EPSILON 0.00001 
 
-void convolve(Canvas *canvas, double *kernel)
-{
-    // fdsqsQS
-}
-
 gboolean Gaussian(GtkWidget *widget, Canvas *canvas)
 {
     if (canvas->modified)
@@ -102,8 +97,9 @@ gboolean Gaussian(GtkWidget *widget, Canvas *canvas)
 
 void Motion(Canvas *canvas, gint k, gdouble angle)
 {
-    if (k % 2 == 0)
-        k++;
+    //k = 10;
+    //angle = M_PI;
+    angle = (angle / 180.0) * M_PI;
 
     if (canvas->modified)
         return_to_initial(canvas);
@@ -193,9 +189,51 @@ void Motion(Canvas *canvas, gint k, gdouble angle)
 
 gboolean Sharpening(GtkWidget *widget, Canvas *canvas)
 {
-    if (canvas->modified)
-        return_to_initial(canvas);
+    float average_r, average_g, average_b;
 
-    canvas->modified = 1;
+    int h = canvas->height;
+    int w = canvas->width;
+
+    float *kernel;
+    kernel = malloc(sizeof(float) * 9);
+    kernel[0] = 0.0;
+    kernel[1] = -0.5;
+    kernel[2] = 0.0;
+    kernel[3] = -0.5;
+    kernel[4] = 3.0;
+    kernel[5] = -0.5;
+    kernel[6] = 0.0;
+    kernel[7] = -0.5;
+    kernel[8] = 0.0;
+
+    guchar *rgba = malloc(4 * sizeof(guchar));
+
+    for (int i = 1; i < w - 1; i++)
+    {
+        for (int j = 1; j < h - 1; j++)
+        {
+            average_r = average_g = average_b = 0;
+
+            for (int x = 0; x < 3; x++)
+            {
+                for (int y = 0; y < 3; y++)
+                {
+                    int ii = i + x - 1;
+                    int jj = j + y - 1;
+
+                    rgba = get_RGBA_given_guchar(canvas, i, j, rgba);
+
+                    average_r += (float)rgba[0] * kernel[x + y];
+                    average_g += (float)rgba[1] * kernel[x + y];
+                    average_b += (float)rgba[2] * kernel[x + y];
+                }
+            }
+
+            put_RGBA(canvas, i, j, truncatef(average_r), truncatef(average_g), truncatef(average_b), rgba[3]);
+        }
+    }
+
+    free(kernel);
+    g_free(rgba);
     return FALSE;
 }

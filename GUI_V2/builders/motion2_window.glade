@@ -66,7 +66,29 @@
               </packing>
             </child>
             <child>
-              <placeholder/>
+              <object class="GtkComboBoxText" id="k_text">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="active">0</property>
+                <property name="has-entry">True</property>
+                <items>
+                  <item translatable="yes">1</item>
+                  <item translatable="yes">3</item>
+                  <item translatable="yes">5</item>
+                  <item translatable="yes">10</item>
+                </items>
+                <child internal-child="entry">
+                  <object class="GtkEntry">
+                    <property name="can-focus">False</property>
+                    <property name="text" translatable="yes">1</property>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
             </child>
             <child>
               <object class="GtkLabel">
@@ -82,7 +104,34 @@
               </packing>
             </child>
             <child>
-              <placeholder/>
+              <object class="GtkComboBoxText" id="angle_text">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="active">0</property>
+                <property name="has-entry">True</property>
+                <items>
+                  <item translatable="yes">0</item>
+                  <item translatable="yes">45</item>
+                  <item translatable="yes">90</item>
+                  <item translatable="yes">135</item>
+                  <item translatable="yes">180</item>
+                  <item translatable="yes">225</item>
+                  <item translatable="yes">270</item>
+                  <item translatable="yes">315</item>
+                  <item translatable="yes">360</item>
+                </items>
+                <child internal-child="entry">
+                  <object class="GtkEntry">
+                    <property name="can-focus">False</property>
+                    <property name="text" translatable="yes">0</property>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">3</property>
+              </packing>
             </child>
           </object>
           <packing>

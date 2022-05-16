@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Generated with glade 3.38.2 -->
 <interface>
-  <requires lib="gtk+" version="3.24"/>
+  <requires lib="gtk+" version="3.22"/>
   <object class="GtkAdjustment" id="adjustment2">
     <property name="upper">100</property>
     <property name="step-increment">1</property>
@@ -25,8 +25,6 @@
               <object class="GtkMenuItem" id="file_menu_item">
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
-                <property name="label" translatable="yes">_File</property>
-                <property name="use-underline">True</property>
                 <child type="submenu">
                   <object class="GtkMenu">
                     <property name="visible">True</property>
@@ -35,7 +33,6 @@
                       <object class="GtkMenuItem" id="project_menu_item">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
-                        <property name="label" translatable="yes">Project...</property>
                         <child type="submenu">
                           <object class="GtkMenu">
                             <property name="visible">True</property>
@@ -44,28 +41,24 @@
                               <object class="GtkMenuItem" id="create_menu_item">
                                 <property name="visible">True</property>
                                 <property name="can-focus">False</property>
-                                <property name="label" translatable="yes">Create New Project</property>
                               </object>
                             </child>
                             <child>
                               <object class="GtkMenuItem" id="push_menu_item">
                                 <property name="visible">True</property>
                                 <property name="can-focus">False</property>
-                                <property name="label" translatable="yes">Push Project</property>
                               </object>
                             </child>
                             <child>
                               <object class="GtkMenuItem" id="pull_menu_item">
                                 <property name="visible">True</property>
                                 <property name="can-focus">False</property>
-                                <property name="label" translatable="yes">Pull Project</property>
                               </object>
                             </child>
                             <child>
                               <object class="GtkMenuItem" id="addpic_menu_item">
                                 <property name="visible">True</property>
                                 <property name="can-focus">False</property>
-                                <property name="label" translatable="yes">Add Picture To Project</property>
                               </object>
                             </child>
                           </object>
@@ -76,14 +69,12 @@
                       <object class="GtkMenuItem" id="load_menu_item">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
-                        <property name="label" translatable="yes">Load file</property>
                       </object>
                     </child>
                     <child>
                       <object class="GtkMenuItem" id="save_menu_item">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
-                        <property name="label" translatable="yes">Save file</property>
                       </object>
                     </child>
                     <child>
@@ -96,21 +87,18 @@
                       <object class="GtkMenuItem" id="login_menu_item">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
-                        <property name="label" translatable="yes">Log In</property>
                       </object>
                     </child>
                     <child>
                       <object class="GtkMenuItem" id="signup_menu_item">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
-                        <property name="label" translatable="yes">Sign Up</property>
                       </object>
                     </child>
                     <child>
                       <object class="GtkMenuItem" id="logout_menu_item">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
-                        <property name="label" translatable="yes">Log Out</property>
                       </object>
                     </child>
                     <child>
@@ -123,7 +111,6 @@
                       <object class="GtkMenuItem" id="quit_menu_item">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
-                        <property name="label" translatable="yes">Quit</property>
                       </object>
                     </child>
                   </object>
@@ -134,8 +121,6 @@
               <object class="GtkMenuItem" id="edit_menu_item">
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
-                <property name="label" translatable="yes">_Edit</property>
-                <property name="use-underline">True</property>
                 <child type="submenu">
                   <object class="GtkMenu">
                     <property name="visible">True</property>
@@ -144,7 +129,6 @@
                       <object class="GtkMenuItem" id="filter_menu_item">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
-                        <property name="label" translatable="yes">Filters...</property>
                         <child type="submenu">
                           <object class="GtkMenu">
                             <property name="visible">True</property>
@@ -153,28 +137,24 @@
                               <object class="GtkMenuItem" id="grayscale_menu_item">
                                 <property name="visible">True</property>
                                 <property name="can-focus">False</property>
-                                <property name="label" translatable="yes">Grayscale</property>
                               </object>
                             </child>
                             <child>
                               <object class="GtkMenuItem" id="negative_menu_item">
                                 <property name="visible">True</property>
                                 <property name="can-focus">False</property>
-                                <property name="label" translatable="yes">Reverse Color</property>
                               </object>
                             </child>
                             <child>
                               <object class="GtkMenuItem" id="sepia_menu_item">
                                 <property name="visible">True</property>
                                 <property name="can-focus">False</property>
-                                <property name="label" translatable="yes">Sepia</property>
                               </object>
                             </child>
                             <child>
                               <object class="GtkMenuItem" id="binarize_menu_item">
                                 <property name="visible">True</property>
                                 <property name="can-focus">False</property>
-                                <property name="label" translatable="yes">Binarize</property>
                               </object>
                             </child>
                           </object>
@@ -185,7 +165,6 @@
                       <object class="GtkMenuItem" id="colors_menu_item">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
-                        <property name="label" translatable="yes">Colors...</property>
                         <child type="submenu">
                           <object class="GtkMenu">
                             <property name="visible">True</property>
@@ -194,25 +173,28 @@
                               <object class="GtkMenuItem" id="lc_menu_item">
                                 <property name="visible">True</property>
                                 <property name="can-focus">False</property>
-                                <property name="label" translatable="yes">Lightness, Contrast</property>
                               </object>
                             </child>
                             <child>
                               <object class="GtkMenuItem" id="hsv_menu_item">
                                 <property name="visible">True</property>
                                 <property name="can-focus">False</property>
-                                <property name="label" translatable="yes">Hue, Saturation, Brightness</property>
                               </object>
                             </child>
                             <child>
                               <object class="GtkMenuItem" id="dithering_menu_item">
                                 <property name="visible">True</property>
                                 <property name="can-focus">False</property>
-                                <property name="label" translatable="yes">Dithering</property>
                               </object>
                             </child>
                           </object>
                         </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkMenuItem" id="histogram_menu_item">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
                       </object>
                     </child>
                     <child>
@@ -225,14 +207,12 @@
                       <object class="GtkMenuItem" id="ca_menu_item">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
-                        <property name="label" translatable="yes">Chromatic aberration</property>
                       </object>
                     </child>
                     <child>
                       <object class="GtkMenuItem" id="co_menu_item">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
-                        <property name="label" translatable="yes">Channel Operations</property>
                       </object>
                     </child>
                     <child>
@@ -245,7 +225,6 @@
                       <object class="GtkMenuItem" id="blur_menu_item">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
-                        <property name="label" translatable="yes">Blur...</property>
                         <child type="submenu">
                           <object class="GtkMenu">
                             <property name="visible">True</property>
@@ -254,21 +233,18 @@
                               <object class="GtkMenuItem" id="gauss_menu_item">
                                 <property name="visible">True</property>
                                 <property name="can-focus">False</property>
-                                <property name="label" translatable="yes">Gaussian Blur</property>
                               </object>
                             </child>
                             <child>
                               <object class="GtkMenuItem" id="motion_menu_item">
                                 <property name="visible">True</property>
                                 <property name="can-focus">False</property>
-                                <property name="label" translatable="yes">Motion Blur</property>
                               </object>
                             </child>
                             <child>
                               <object class="GtkMenuItem" id="mosaic_menu_item">
                                 <property name="visible">True</property>
                                 <property name="can-focus">False</property>
-                                <property name="label" translatable="yes">Mosaic</property>
                               </object>
                             </child>
                           </object>
@@ -285,14 +261,12 @@
                       <object class="GtkMenuItem" id="mirror_menu_item">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
-                        <property name="label" translatable="yes">Mirror</property>
                       </object>
                     </child>
                     <child>
                       <object class="GtkMenuItem" id="rotation_menu_item">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
-                        <property name="label" translatable="yes">Rotation</property>
                       </object>
                     </child>
                     <child>
@@ -305,7 +279,6 @@
                       <object class="GtkMenuItem" id="fix_menu_item">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
-                        <property name="label" translatable="yes">Fix Image...</property>
                         <child type="submenu">
                           <object class="GtkMenu">
                             <property name="visible">True</property>
@@ -314,14 +287,12 @@
                               <object class="GtkMenuItem" id="median_menu_item">
                                 <property name="visible">True</property>
                                 <property name="can-focus">False</property>
-                                <property name="label" translatable="yes">Reduce Noise (Median)</property>
                               </object>
                             </child>
                             <child>
                               <object class="GtkMenuItem" id="deinterlace_menu_item">
                                 <property name="visible">True</property>
                                 <property name="can-focus">False</property>
-                                <property name="label" translatable="yes">Deinterlacing...</property>
                                 <child type="submenu">
                                   <object class="GtkMenu">
                                     <property name="visible">True</property>
@@ -330,14 +301,12 @@
                                       <object class="GtkMenuItem" id="deinter_odd_menu_item">
                                         <property name="visible">True</property>
                                         <property name="can-focus">False</property>
-                                        <property name="label" translatable="yes">Keep Odd Horizontal Fields</property>
                                       </object>
                                     </child>
                                     <child>
                                       <object class="GtkMenuItem" id="deinter_even_menu_item">
                                         <property name="visible">True</property>
                                         <property name="can-focus">False</property>
-                                        <property name="label" translatable="yes">Keep Even Horizontal Fields</property>
                                       </object>
                                     </child>
                                   </object>
@@ -348,6 +317,12 @@
                         </child>
                       </object>
                     </child>
+                    <child>
+                      <object class="GtkMenuItem" id="fft_menu_item">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                      </object>
+                    </child>
                   </object>
                 </child>
               </object>
@@ -356,8 +331,6 @@
               <object class="GtkMenuItem" id="help_menu_item">
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
-                <property name="label" translatable="yes">_Help</property>
-                <property name="use-underline">True</property>
                 <child type="submenu">
                   <object class="GtkMenu">
                     <property name="visible">True</property>
@@ -390,7 +363,7 @@
                       <object class="GtkScale" id="brush_size">
                         <property name="visible">True</property>
                         <property name="can-focus">True</property>
-                        <property name="adjustment">adjustment2</property>
+                        <property name="adjustment"/>
                         <property name="round-digits">0</property>
                       </object>
                       <packing>

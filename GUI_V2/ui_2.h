@@ -61,6 +61,8 @@ typedef struct UserInfo{
     int id;
     int fct; //0=LOGIN,1=SIGNUP
     Canvas* canvas;
+    //The warning label
+    GtkLabel *warning_label;
 } UserInfo;
 
 // For FFT
@@ -69,6 +71,14 @@ typedef struct complex_number
     float real;
     float imaginary;
 } complex_number;
+
+typedef struct visdata
+{
+    float * sig;
+    float *response;
+    float *harmonics;
+    float *phase;
+}vis_data;
 
 // In ui_2_complex.c
 float complex_coef(float n, float k, float N);
@@ -90,6 +100,7 @@ void print_arr_img(complex_number *arr, size_t size, size_t in_line);
 guchar guchar_min_3(guchar a, guchar b, guchar c);
 guchar guchar_max_3(guchar a, guchar b, guchar c);
 guchar truncateU(gint n);
+guchar truncatef(float n);
 Canvas *return_to_initial(Canvas *canvas);
 void put_RGBA(Canvas *canvas, int x, int y, guchar red, guchar green, guchar blue, guchar alpha);
 guchar* get_RGBA(Canvas *canvas, int x, int y);

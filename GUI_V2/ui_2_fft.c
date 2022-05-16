@@ -197,7 +197,7 @@ void filter_cut_around(complex_number *arr, size_t bot, size_t top, size_t size)
     }
 }
 
-/*void apply_filter_to_buffer(vis_data *data, size_t size)
+void apply_filter_to_buffer(vis_data *data, size_t size)
 {
     float *buf = data->sig;
     float *mag = data->harmonics;
@@ -211,7 +211,7 @@ void filter_cut_around(complex_number *arr, size_t bot, size_t top, size_t size)
     // filter_cut_from(arr,size,(size_t)(10));
     // filter_cut_before(arr,(size_t)(100),size);
 
-    // filter_cut_around(arr,10,300,size);
+    filter_cut_around(arr,10,300,size);
     // filter_cut_between(arr,400,512,size);
 
     mag_table(arr, mag, size);
@@ -224,5 +224,78 @@ void filter_cut_around(complex_number *arr, size_t bot, size_t top, size_t size)
     {
         buf[i] = rep[i];
     }
-}*/
+}
+
+guchar get_pixel_red(Canvas *canvas, int x, int y)
+{
+    guchar *rgba = get_RGBA(canvas, x, y);
+    guchar red = rgba[0];
+    g_free(rgba);
+
+    return red;
+}
+
+int closest_p(int my_num)
+{
+    int mult = 2;
+
+    while(my_num/mult != 0)
+    {
+        mult *= 2;
+    }
+
+    return mult;
+}
+
+float *red_channel(Canvas *canvas)
+{
+    int h = canvas->height;
+    int w = canvas->width;
+    int clos = closest_p(w);
+    float *arr = malloc(clos * sizeof(float));
+
+    float *arr_tot = malloc(h * w * sizeof(float));
+
+    for (size_t i = 0; i < h; i++)
+    {
+        for (size_t j = 0; j < w; j++)
+            arr[j] = (float)get_pixel_red(canvas , j, i); 
+
+        for (size_t j = w; j < clos; j++)
+            arr[j] = 0.0; 
+
+        vis_data *data = malloc(sizeof(vis_data));
+        data->harmonics = malloc(sizeof(float) *clos);
+        data->response = malloc(sizeof(float) * clos);
+        data->sig = arr;
+        data->phase = malloc(sizeof(float) *clos);
+        apply_filter_to_buffer(data,clos);
+        
+
+        for (size_t j = 0; j < w; j++)
+        {
+            arr_tot[j+i*h] = data->response[j];
+        }
+        free(data->harmonics);
+        free(data->phase);
+
+        free(data->response);
+        free(data);
+    }
+    return arr_tot;
+}
+
+void translate(Canvas *canvas, float *arr)
+{
+    int h = canvas->height;
+    int w = canvas->width;
+
+    for (size_t i = 0; i < h; i++)
+    {
+        for (size_t j = 0; j < w; j++)
+        {
+            put_RGBA(canvas, j, i, truncatef(arr[i*h+j]), truncatef(arr[i*h+j]), truncatef(arr[i*h+j]), 255);
+        }   
+    }
+}
 

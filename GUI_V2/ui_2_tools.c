@@ -34,6 +34,15 @@ guchar truncateU(gint n)
     return (guchar)n;
 }
 
+guchar truncatef(float n)
+{
+    if (n < 0.0)
+        n = 0.0;
+    else if (n > 255.0)
+        n = 255.0;
+    return (guchar)n;
+}
+
 Canvas *return_to_initial(Canvas *canvas)
 {
     gdk_pixbuf_unref(canvas->pixbuf);
